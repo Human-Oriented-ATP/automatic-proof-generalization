@@ -13,7 +13,6 @@ open Lean Elab Tactic Meta Term Command
 set_option linter.unusedVariables false
 set_option pp.showLetValues false
 set_option autoImplicit false
--- set_option trace.ProofPrinting true
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Generalization of the proof that √17 is irrational

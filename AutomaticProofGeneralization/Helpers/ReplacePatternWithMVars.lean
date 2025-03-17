@@ -2,6 +2,7 @@ import Lean
 import AutomaticProofGeneralization.Helpers.Antiunification
 import AutomaticProofGeneralization.Helpers.Metavariables
 import AutomaticProofGeneralization.Helpers.Naming
+import AutomaticProofGeneralization.Helpers.FunctionApplications
 
 open Lean Elab Tactic Meta Term Command AntiUnify
 
@@ -33,32 +34,22 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
       -- that is, ensure that fAbs and aAbs are in sync about their metavariables
       | .app f a         => --logInfo m!"recursing under function {f} of type {← inferType f}"
                           if detectConflicts? then
-                            let fAbs ← visit f depth -- the type
-                            let .forallE _ expectedA _ bi ← (whnf <| ← inferType fAbs) | throwError m!"Expected the type of {fAbs}, {← inferType fAbs}, to be a function type."
-
-                            let aAbs ← -- the term
-                              if bi.isInstImplicit && expectedA.hasExprMVar then
-                                trace[TypecheckingErrors] m!"Creating new metavariable for typeclass argument {expectedA}"
-                                mkFreshExprMVarAt lctx linsts expectedA (kind := .synthetic)
-                              else
-                                visit a depth
-                            let inferredA ← inferType aAbs
+                            let mut fAbs ← visit f depth -- the type
+                            let mut aAbs ← visit a depth -- the term
                             try
                               check $ .app fAbs aAbs
                               return e.updateApp! fAbs aAbs
                             catch err =>  -- as an argument to fabs, feed in an mvar with the type it is expected to have.
+                              let expectedA ← extractArgType fAbs
                               -- trace[TypecheckingErrors] m!"Error in typechecking: {err.toMessageData}"
                               trace[TypecheckingErrors] m!"Error in typechecking: aAbs was expected to have type \n\t{← instantiateMVars expectedA} \nbut has type \n\t{← instantiateMVars =<< inferType aAbs}"
 
                               -- the mismatch is probably caused because something else needs to be generalized
-                              let (_result, problemTerms) ← getTermsToGeneralize expectedA inferredA
+                              let (_result, problemTerms) ← getTermsToGeneralize expectedA (← inferType aAbs)
                               trace[TypecheckingErrors] m!"The mismatch can probably be fixed by generalizing the terms {problemTerms}"
-                              if problemTerms.isEmpty then do
-                                throwError m!"No mismatches found between {expectedA} and {inferredA}, yet typechecking fails"
-
                               modify fun terms ↦ (problemTerms.map Prod.snd ++ terms).eraseDups
 
-                              visit (.app fAbs aAbs) depth
+                              return e.updateApp! fAbs aAbs
                               -- if this doesn't typecheck, that means probably that term has been generalized,
                               -- but type still has the pattern (or a comp rule was used).
                               -- so to fix it, we should discard the proof entirely (by making it a mvar
