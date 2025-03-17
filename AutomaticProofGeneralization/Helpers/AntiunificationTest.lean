@@ -1,4 +1,4 @@
-import MotivatedMoves.AutoGeneralization.Antiunification
+import AutomaticProofGeneralization.Helpers.Antiunification
 
 open Lean Elab Meta Command Term AntiUnify
 
@@ -6,7 +6,7 @@ elab "#antiunify" e:term "&" e':term : command => runTermElabM fun _ ↦ do
   let e ← Term.elabTerm e none
   let e' ← Term.elabTerm e' none
   logInfo m!"{e}, {e'}"
-  let (result, mismatches) ← antiUnify e e' |>.run []
+  let (result, mismatches) ← antiUnify e e'
   logInfo m!"Result: {result}"
   logInfo "---\nMismatches:\n---"
   for mismatch in mismatches do
@@ -15,8 +15,6 @@ elab "#antiunify" e:term "&" e':term : command => runTermElabM fun _ ↦ do
 #antiunify (((1 + 2) + 3) : Nat) & (((3 + 2) + 4) : Nat)
 
 #antiunify ∃ n : Nat, 1 + n = 2 & ∃ n : Nat, 2 + n = 2
-
-#antiunify λ x : Nat => x + 5 & λ x : Nat => 2
 
 #antiunify (let n : Nat := 1 + 2; n + 5) & (let n : Nat := 1 + 3; n + 7)
 

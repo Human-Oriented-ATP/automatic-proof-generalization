@@ -1,8 +1,8 @@
 import Lean
-import MotivatedMoves.AutoGeneralization.Helpers.GoalsAndHypotheses
-import MotivatedMoves.AutoGeneralization.Helpers.ReplacePatternWithMVars
-import MotivatedMoves.AutoGeneralization.Helpers.Simplification
-import MotivatedMoves.AutoGeneralization.Helpers.Unification
+import AutomaticProofGeneralization.Helpers.GoalsAndHypotheses
+import AutomaticProofGeneralization.Helpers.ReplacePatternWithMVars
+import AutomaticProofGeneralization.Helpers.Simplification
+import AutomaticProofGeneralization.Helpers.Unification
 
 open Lean Elab Tactic Meta Term Command
 
@@ -11,7 +11,7 @@ namespace Autogeneralize
 initialize
   registerTraceClass `ProofPrinting
 
-/-- Generate a term "f" in a theorem to its type, adding in necessary identifiers along the way -/
+/-- Generalize a term in a theorem to an arbitrary constant of its type, adding in necessary hypotheses along the way -/
 def autogeneralize (thmName : Name) (pattern : Expr) (occs : Occurrences := .all) (consolidate : Bool := false) : TacticM Unit := withMainContext do
   -- Get details about the un-generalized proof we're going to generalize
   let (thmType, thmProof) ← getTheoremAndProof thmName

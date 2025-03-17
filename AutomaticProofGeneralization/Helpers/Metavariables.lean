@@ -1,5 +1,5 @@
 import Lean
-import MotivatedMoves.AutoGeneralization.Helpers.Subexpressions
+-- import AutomaticProofGeneralization.Helpers.Subexpressions
 
 open Lean Elab Tactic Meta Term Command
 
@@ -27,16 +27,16 @@ def getAssignmentFor (m : MVarId) : MetaM (Option Expr) := do
   return e
 
 /-- Returns true if the expression contains metadata -/
-def containsMData (e : Expr): MetaM Bool := do
-  return ← containsExprWhere (Expr.isMData) e
+def containsMData (e : Expr) : Bool :=
+  e.find? Expr.isMData |>.isSome
 
 /-- Returns true if the expression is assigned to another expression containing metadata -/
 def assignmentContainsMData (m : MVarId) : MetaM Bool := do
-  let m_assignment ← getAssignmentFor m
-  if let some assignment := m_assignment then
-    if ← containsMData assignment then
-      return True
-  return False
+  let mAssignment ← getAssignmentFor m
+  if let some assignment := mAssignment then
+    if containsMData assignment then
+      return true
+  return false
 
 /-- Returns a list of all metavariables whose assignment contains metadata -/
 def getAllMVarsContainingMData (a : Array MVarId): MetaM (Array MVarId) :=

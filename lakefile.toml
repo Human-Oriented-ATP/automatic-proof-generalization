@@ -1,0 +1,11 @@
+name = "AutomaticProofGeneralization"
+version = "0.1.0"
+defaultTargets = ["automaticproofgeneralization"]
+
+[[lean_lib]]
+name = "AutomaticProofGeneralization"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.18.0-rc1"

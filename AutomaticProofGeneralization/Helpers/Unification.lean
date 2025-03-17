@@ -1,5 +1,5 @@
 import Lean
-import MotivatedMoves.AutoGeneralization.Helpers.ReplacePatternWithMVars
+import AutomaticProofGeneralization.Helpers.ReplacePatternWithMVars
 
 open Lean Elab Tactic Meta Term Command
 

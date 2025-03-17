@@ -1,8 +1,7 @@
 import Lean
-import MotivatedMoves.AutoGeneralization.Helpers.Antiunification
-import MotivatedMoves.AutoGeneralization.Helpers.Metavariables
-import MotivatedMoves.AutoGeneralization.Helpers.Naming
-import MotivatedMoves.AutoGeneralization.Helpers.FunctionApplications
+import AutomaticProofGeneralization.Helpers.Antiunification
+import AutomaticProofGeneralization.Helpers.Metavariables
+import AutomaticProofGeneralization.Helpers.Naming
 
 open Lean Elab Tactic Meta Term Command AntiUnify
 
@@ -14,14 +13,14 @@ Roughly implemented like kabstract, with the following differences:
   kabstract replaces "p" with a bvar, while this replaces "p" with an mvar
   kabstract replaces "p" with the same bvar, while this replaces each instance with a different mvar
   kabstract doesn't look for instances of "p" in the types of constants, this does
-  kabstract doesn't look under loose bvars, but this creates LocalDecls so we can still look under bvars
+  kabstract doesn't look under binders, but this creates LocalDecls so we can still look under binders
 -/
 
 -- NOTE (future TODO): this code can now be rewritten without `withLocalDecl` or `mkFreshExprMVarAt`
-partial def replacePatternsWithMVars (e : Expr) (lctx : LocalContext) (linsts : LocalInstances) : StateT (List Expr) MetaM Expr := do
-  logInfo m!"We are replacing the patterns {← get} with mvars."
+partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) (linsts : LocalInstances) (detectConflicts? := false) : StateT (List Expr) MetaM Expr := do
+  logInfo m!"We are replacing the pattern {p}:{← inferType p} with mvars."
   -- abstracting `p` so that it can be transported to other meta-variable contexts
-  -- let pAbs ← abstractMVars p (levels := false) -- the `(levels := false)` prevents bizarre instantiations across universe levels
+  let pAbs ← abstractMVars p (levels := false) -- the `(levels := false)` prevents bizarre instantiations across universe levels
 
   -- the "depth" here is not depth of expression, but how many constants / theorems / inference rules we have unfolded
   let rec visit (e : Expr) (depth : Nat := 0): StateT (List Expr) MetaM Expr := do
@@ -33,52 +32,42 @@ partial def replacePatternsWithMVars (e : Expr) (lctx : LocalContext) (linsts : 
       -- unify types of metavariables as soon as we get a chance in .app
       -- that is, ensure that fAbs and aAbs are in sync about their metavariables
       | .app f a         => --logInfo m!"recursing under function {f} of type {← inferType f}"
-                          let fAbs ← visit f depth -- the type
-                          let aAbs ← visit a depth
-                          let expectedA ← extractArgType fAbs
-                          let inferredA ← inferType aAbs
-                          try
-                            -- guard <| ← liftM <| isDefEq expectedA inferredA
-                            check <| .app fAbs aAbs
-                            return e.updateApp! fAbs aAbs
-                          catch err =>  -- as an argument to fabs, feed in an mvar with the type it is expected to have.
-                            -- trace[TypecheckingErrors] m!"Error in typechecking: {err.toMessageData}"
-                            trace[TypecheckingErrors] m!"Error in typechecking: aAbs was expected to have type \n\t{← instantiateMVars expectedA} \nbut has type \n\t{← instantiateMVars =<< inferType aAbs}"
+                          if detectConflicts? then
+                            let fAbs ← visit f depth -- the type
+                            let .forallE _ expectedA _ bi ← (whnf <| ← inferType fAbs) | throwError m!"Expected the type of {fAbs}, {← inferType fAbs}, to be a function type."
 
-                            -- the mismatch is probably caused because something else needs to be generalized
-                            let (_, conflicts) ← getTermsToGeneralize expectedA inferredA
-                            let (_, problemTerms) := conflicts.unzip
-                            trace[TypecheckingErrors] m!"The mismatch can probably be fixed by generalizing the terms {problemTerms}"
-                            modify (fun terms ↦ (problemTerms ++ terms).eraseDups)
-
-                            let fAbs ← visit fAbs depth
-                            let aAbs ← visit aAbs depth
-                            let expectedA ← extractArgType fAbs
+                            let aAbs ← -- the term
+                              if bi.isInstImplicit && expectedA.hasExprMVar then
+                                trace[TypecheckingErrors] m!"Creating new metavariable for typeclass argument {expectedA}"
+                                mkFreshExprMVarAt lctx linsts expectedA (kind := .synthetic)
+                              else
+                                visit a depth
                             let inferredA ← inferType aAbs
-
-                            -- if this doesn't typecheck, that means probably that term has been generalized,
-                            -- but type still has the pattern (or a comp rule was used).
-                            -- so to fix it, we should discard the proof entirely (by making it a mvar
                             try
-                              -- guard <| ← liftM <| isDefEq expectedA inferredA
-                              check <| .app fAbs aAbs
+                              check $ .app fAbs aAbs
                               return e.updateApp! fAbs aAbs
                             catch err =>  -- as an argument to fabs, feed in an mvar with the type it is expected to have.
-                              throwError "Type-checking error after abstracting problematic terms: {err.toMessageData}"
-                              -- let (result, conflicts) ← getTermsToGeneralize expectedA (← inferType aAbs)
-                              -- let (positions, problemTerms) := conflicts.unzip
-                              -- -- get rid of the side with the problematic term
-                              -- let fAbs ← if positions.contains false then -- if the function has a problematic term
-                              --   trace[TypecheckingErrors] m!"Function {fAbs} has a problematic term"
-                              --   mkFreshExprMVar none (kind := .synthetic) -- TODO: Make the type of the meta-variable another meta-variable
-                              -- else
-                              --   pure fAbs
-                              -- let aAbs ← if positions.contains true then -- if the argument has a problematic term
-                              --   trace[TypecheckingErrors] m!"Argument {aAbs} has a problematic term; probl"
-                              --   mkFreshExprMVar result (kind := .synthetic) -- TODO: Make the type of the meta-variable another meta-variable
-                              -- else
-                              --   pure aAbs
-                              -- return e.updateApp! fAbs aAbs
+                              -- trace[TypecheckingErrors] m!"Error in typechecking: {err.toMessageData}"
+                              trace[TypecheckingErrors] m!"Error in typechecking: aAbs was expected to have type \n\t{← instantiateMVars expectedA} \nbut has type \n\t{← instantiateMVars =<< inferType aAbs}"
+
+                              -- the mismatch is probably caused because something else needs to be generalized
+                              let (_result, problemTerms) ← getTermsToGeneralize expectedA inferredA
+                              trace[TypecheckingErrors] m!"The mismatch can probably be fixed by generalizing the terms {problemTerms}"
+                              if problemTerms.isEmpty then do
+                                throwError m!"No mismatches found between {expectedA} and {inferredA}, yet typechecking fails"
+
+                              modify fun terms ↦ (problemTerms.map Prod.snd ++ terms).eraseDups
+
+                              visit (.app fAbs aAbs) depth
+                              -- if this doesn't typecheck, that means probably that term has been generalized,
+                              -- but type still has the pattern (or a comp rule was used).
+                              -- so to fix it, we should discard the proof entirely (by making it a mvar
+                          else
+                            let fAbs ← visit f depth
+                            let aAbs ← visit a depth
+                            -- check $ .app fAbs aAbs
+                            return e.updateApp! fAbs aAbs
+
       | .mdata _ b       => return e.updateMData! (← visit b depth)
       | .proj _ _ b      => return e.updateProj! (← visit b depth)
       | .letE n t v b _ =>  let tAbs ← visit t depth
@@ -150,20 +139,18 @@ partial def replacePatternsWithMVars (e : Expr) (lctx : LocalContext) (linsts : 
     if e.hasLooseBVars then
       logInfo "Loose BVars detected, so we visit children."
       visitChildren ()
-    else if e.isMVar then
-      return e -- handling this case separately to avoid unnecessary unification in the next case
     else
       -- if the expression "e" is the pattern you want to replace...
       let mctx ← getMCtx
-      -- let (_, _, p) ← openAbstractMVarsResult pAbs
-      if let .some p ← (← get).findM? (liftM <| withoutModifyingState <| isDefEq e ·) then
-          -- since the type of `p` may be slightly different each time depending on the context it's in, we infer its type each time
-          let m ← mkFreshExprMVarAt lctx linsts (← inferType p) (userName := placeholderName) --(kind := .syntheticOpaque) -- replace every occurrence of pattern with mvar
-          -- let m ← mkFreshExprMVar (← inferType p) (userName := `n) -- replace every occurrence of pattern with mvar
-          -- let m ← mkFreshExprMVar pType -- replace every occurrence of pattern with mvar
-          -- logInfo m!"made mvar {m} of type {pType}"
-          return m
-        -- otherwise, "e" might contain the pattern...
+      let (_, _, p) ← openAbstractMVarsResult pAbs
+      if !e.isMVar && (←  liftM <|  withoutModifyingState (isDefEq e p)) then
+        -- since the type of `p` may be slightly different each time depending on the context it's in, we infer its type each time
+        let m ← mkFreshExprMVarAt lctx linsts (← inferType p) (userName := placeholderName) --(kind := .syntheticOpaque) -- replace every occurrence of pattern with mvar
+        -- let m ← mkFreshExprMVar (← inferType p) (userName := `n) -- replace every occurrence of pattern with mvar
+        -- let m ← mkFreshExprMVar pType -- replace every occurrence of pattern with mvar
+        -- logInfo m!"made mvar {m} of type {pType}"
+        return m
+      -- otherwise, "e" might contain the pattern...
       else
         setMCtx mctx
         -- so that other matches are still possible.

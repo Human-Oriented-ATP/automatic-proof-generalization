@@ -71,9 +71,11 @@ partial def antiUnifyCore (e e' : Expr) : ReaderT (LocalContext × LocalInstance
     else
       createAntiunifyingMVar
   | .proj n idx s, .proj n' idx' s' =>
-    unless n = n' ∧ idx = idx' do
-      throwError m!"Data of projections {e} and {e'} do not match."
-    return .proj n idx (← antiUnifyCore s s')
+    if n = n' ∧ idx = idx' then do
+      return .proj n idx (← antiUnifyCore s s')
+    else
+      trace[AntiUnify] m!"Data of projections {e} and {e'} do not match."
+      createAntiunifyingMVar
   | .mdata md e, .mdata md' e' =>
     return .mdata (KVMap.mergeBy (fun _ d _ ↦ d) md md') (← antiUnifyCore e e')
   | .mdata md e, e' =>
@@ -121,8 +123,8 @@ where
 def antiUnify (e e' : Expr) : MetaM (Expr × List Mismatch) := do
   let e ← instantiateMVars e
   let e' ← instantiateMVars e'
-  let e  ← withReducibleAndInstances <| reduce e  (explicitOnly := false) (skipTypes := false) (skipProofs := false)
-  let e' ← withReducibleAndInstances <| reduce e' (explicitOnly := false) (skipTypes := false) (skipProofs := false)
+  let e  ← withReducible <| reduce e  (explicitOnly := false) (skipTypes := false) (skipProofs := false)
+  let e' ← withReducible <| reduce e' (explicitOnly := false) (skipTypes := false) (skipProofs := false)
   let (result, mismatches) ← antiUnifyCore e e' |>.run (← getLCtx, ← getLocalInstances) |>.run []
   trace[AntiUnify] "All results of anti-unification: {mismatches}"
   let mismatches := mismatches.filter (fun ⟨_, left, right⟩ ↦ !(left.isMVar && right.isMVar))
