@@ -20,7 +20,6 @@ theorem irrat_def (n: ℕ) : (¬ ∃ a b : ℕ, Nat.gcd a b = 1 ∧ a*a = (n: �
     apply sqrt_pos
   have n_pos : 0 ≤ (n:ℝ) := by
     exact Nat.cast_nonneg n
-  -- rw [← Real.sqrt_mul_self x_pos] at irr
   have x_sq : x*x=n := by
     symm
     apply_mod_cast (Real.sqrt_eq_iff_mul_self_eq n_pos x_pos).mp (irr.symm)
@@ -31,7 +30,6 @@ theorem irrat_def (n: ℕ) : (¬ ∃ a b : ℕ, Nat.gcd a b = 1 ∧ a*a = (n: �
   use x.den
   constructor
   apply x.reduced
-  -- rw [← Rat.num_div_den x] at x_sq
   rw [Rat.eq_iff_mul_eq_mul] at x_sq
   simp at x_sq
 

@@ -1,5 +1,4 @@
 import Lean
--- import AutomaticProofGeneralization.Helpers.Subexpressions
 
 open Lean Elab Tactic Meta Term Command
 
@@ -45,14 +44,14 @@ def getAllMVarsContainingMData (a : Array MVarId): MetaM (Array MVarId) :=
 /-- Returns true if given an expression `e` has a metavariable of type `t`-/
 def hasMVarOfType (t e: Expr) : MetaM Bool := do
   let mvarIds ← getMVars e
-  mvarIds.anyM (fun m => do withoutModifyingState (isDefEq (← m.getType') t))
+  mvarIds.anyM (fun m => do withoutModifyingState (isDefEq (← m.getType) t))
 
 /-- Make all mvars in mvarArray with the type t the same  -/
 def setEqualAllMVarsOfType (mvarArray : Array MVarId) (t : Expr) : MetaM Unit := do
   let m ← mkFreshExprMVar t -- new mvar to replace all others with the same type
   for mv in mvarArray do
     if ← isDefEq (← mv.getType) t then
-      if !(← mv.isAssigned) then mv.assign m--mv.assignIfDefeq m
+      if !(← mv.isAssigned) then mv.assign m
 
 /-- Pull out mvars as hypotheses to create a chained implication-/
 def pullOutMissingHolesAsHypotheses (proof : Expr) : MetaM Expr :=

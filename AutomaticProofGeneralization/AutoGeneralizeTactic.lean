@@ -25,18 +25,14 @@ def autogeneralize (thmName : Name) (pattern : Expr) (occs : Occurrences := .all
 
   -- Generalize all constants that `pattern` has dependencies on, and then generalize `pattern`
   dependenciesToGeneralize := dependenciesToGeneralize.eraseDups ++ [pattern]
-  logInfo m!"ALL DEPENDENCIES: {dependenciesToGeneralize}"
   for dep in dependenciesToGeneralize do
     genThmProof ← replacePatternWithMVars genThmProof dep (← getLCtx) (← getLocalInstances) (detectConflicts? := false) |>.run' []
 
-  trace[ProofPrinting] m!"!Tactic Generalized Proof After Abstraction: { genThmProof}"
-
-  logInfo m!"ALL DEPENDENCIES: {dependenciesToGeneralize}"
-  -- Generalize all the actual `pattern`
+  trace[ProofPrinting] m!"!Tactic Generalized Proof After Abstraction: {genThmProof}"
 
   -- Consolidate mvars within proof term by running a typecheck
   genThmProof ← consolidateWithTypecheck genThmProof
-  trace[ProofPrinting] m!"!Tactic Generalized Proof After Typecheck: { genThmProof}"
+  trace[ProofPrinting] m!"!Tactic Generalized Proof After Typecheck: {genThmProof}"
   let genThmType ← inferType genThmProof
 
   -- Re-specialize the occurrences of the pattern we are not interested in
@@ -56,15 +52,11 @@ def autogeneralize (thmName : Name) (pattern : Expr) (occs : Occurrences := .all
   genThmProof ← removeRepeatingHypotheses genThmProof
 
   -- Pull out the holes (the abstracted term & all hypotheses on it) into a chained implication.
-  genThmProof ←  pullOutMissingHolesAsHypotheses genThmProof --logInfo ("Tactic Generalized Proof: " ++ genThmProof)
-  let genThmType ← inferType genThmProof; --logInfo ("Tactic Generalized Type: " ++ genThmType)
-
-  -- Run "simp".
-  -- let (simpgenThmType, simpgenThmProof) ← performSimp genThmType genThmProof
+  genThmProof ←  pullOutMissingHolesAsHypotheses genThmProof
+  let genThmType ← inferType genThmProof
 
   -- Add the generalized theorem to the context.
   createLetHypothesis genThmType genThmProof (thmName++`Gen)
-  -- createLetHypothesis simpgenThmType simpgenThmProof (thmName++`Gen)
 
   logInfo s!"Successfully generalized \n  {thmName} \nto \n  {thmName++`Gen} \nby abstracting {← ppExpr pattern}."
 
@@ -73,7 +65,8 @@ Autogeneralizes the "pattern" in the hypothesis "h",
 But generalizes all occurrences in the same way.  Behaves as in (Pons, 2000)
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
-/-- A tactic that generalizes all instances of `pattern` in a local hypotheses `h` by requiring `pattern` to have only the properties used in the proof of `h`. Behaves as in ("Generalization in Type Theory Based Proof Assistants" by Olivier Pons, 2000).-/
+/-- A tactic that generalizes all instances of `pattern` in a local hypotheses `h` by requiring `pattern` to have only the properties used in the proof of `h`.
+    Behaves as in ("Generalization in Type Theory Based Proof Assistants" by Olivier Pons, 2000).-/
 elab "autogeneralize_basic" pattern:term "in" h:ident : tactic => do
   let pattern ← (Lean.Elab.Term.elabTerm pattern none)
   let h := h.getId

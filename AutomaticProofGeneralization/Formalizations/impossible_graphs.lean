@@ -28,8 +28,6 @@ theorem impossible_graph (G : SimpleGraph (Fin 4)) [DecidableRel G.Adj]:
     rw [Set.card_ne_eq]
     rewrite [ Fintype.card_fin]
     rfl
-    -- rfl
-    -- simp only [Nat.reduceSub] -- or rfl
 
   have neq_imp_adj :  {w | w ≠ v} ⊆ {w | G.Adj v w} := by
     rw [Set.setOf_subset_setOf]
@@ -48,7 +46,4 @@ theorem impossible_graph (G : SimpleGraph (Fin 4)) [DecidableRel G.Adj]:
     exact neq_imp_adj
 
   rw [v_deg] at v_deg_geq
-
-  -- have three_not_le_one : ¬ 3 ≤ 1  := Nat.not_ofNat_le_one
-  -- simp at v_deg_geq; -- if we simp directly here, the proof doesn't autogen
   exact Nat.not_lt.mpr v_deg_geq one_lt_three

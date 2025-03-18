@@ -20,5 +20,5 @@ def relabelMVarsIn (e : Expr) : MetaM Unit := do
 /-- Turn a lemma name into its generalized version by prefixing it with `gen_` and truncating. -/
 def mkAbstractedName (n : Name) : Name :=
     match n with
-    | (.str _ s) =>  Name.mkSimple s!"gen_{s.takeWhile (fun c => c != '_')}" -- (fun c => c.isLower && c != '_')
+    | (.str _ s) =>  Name.mkSimple s!"gen_{s.takeWhile (fun c => c != '_')}"
     | _ => `unknown

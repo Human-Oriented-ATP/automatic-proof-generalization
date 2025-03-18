@@ -2,14 +2,6 @@ import Lean
 open Lean Elab Tactic Meta Term Command
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Retrieving the goal
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
-
-/--  Tactic to return goal variable -/
-def getGoalVar : TacticM MVarId := do
-  return ← getMainGoal
-
-/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Retrieving hypotheses
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
@@ -61,6 +53,6 @@ def createLetHypothesis (hypType : Expr) (hypProof : Expr) (hypName? : Option Na
   let hypName := hypName?.getD `h -- use the name given first, otherwise call it `h
   let check ← isDefEq (hypType) (← inferType hypProof)
   if !check then throwError "Hypothesis type {hypType} doesn't match proof {hypProof}"
-  let new_goal ← (←getGoalVar).define hypName hypType hypProof
-  let (_, new_goal) ← intro1Core new_goal true
-  setGoals [new_goal]
+  let newGoal ← (← getMainGoal).define hypName hypType hypProof
+  let (_, newGoal) ← intro1Core newGoal true
+  setGoals [newGoal]

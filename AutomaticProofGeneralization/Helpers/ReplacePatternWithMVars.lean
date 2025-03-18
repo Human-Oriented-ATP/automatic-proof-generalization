@@ -9,19 +9,18 @@ open Lean Elab Tactic Meta Term Command AntiUnify
 initialize
   registerTraceClass `TypecheckingErrors
 
-/- Replaces all instances of `p` in `e` with a metavariable.
+/--
+Replaces all instances of `p` in `e` with a metavariable.
 Roughly implemented like kabstract, with the following differences:
   kabstract replaces "p" with a bvar, while this replaces "p" with an mvar
   kabstract replaces "p" with the same bvar, while this replaces each instance with a different mvar
   kabstract doesn't look for instances of "p" in the types of constants, this does
   kabstract doesn't look under binders, but this creates LocalDecls so we can still look under binders
 -/
-
--- NOTE (future TODO): this code can now be rewritten without `withLocalDecl` or `mkFreshExprMVarAt`
 partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) (linsts : LocalInstances) (detectConflicts? := false) : StateT (List Expr) MetaM Expr := do
   logInfo m!"We are replacing the pattern {p}:{← inferType p} with mvars."
   -- abstracting `p` so that it can be transported to other meta-variable contexts
-  let pAbs ← abstractMVars p (levels := false) -- the `(levels := false)` prevents bizarre instantiations across universe levels
+  let pAbs ← abstractMVars p (levels := false) -- the `(levels := false)` prevents unusual instantiations across universe levels
 
   -- the "depth" here is not depth of expression, but how many constants / theorems / inference rules we have unfolded
   let rec visit (e : Expr) (depth : Nat := 0): StateT (List Expr) MetaM Expr := do
@@ -32,16 +31,16 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
       match e with
       -- unify types of metavariables as soon as we get a chance in .app
       -- that is, ensure that fAbs and aAbs are in sync about their metavariables
-      | .app f a         => --logInfo m!"recursing under function {f} of type {← inferType f}"
+      | .app f a         =>
+                          -- in `detectConflicts` mode, we extract additional terms to generalize from typechecking errors using anti-unification
                           if detectConflicts? then
                             let mut fAbs ← visit f depth -- the type
                             let mut aAbs ← visit a depth -- the term
                             try
                               check $ .app fAbs aAbs
                               return e.updateApp! fAbs aAbs
-                            catch err =>  -- as an argument to fabs, feed in an mvar with the type it is expected to have.
+                            catch err =>
                               let expectedA ← extractArgType fAbs
-                              -- trace[TypecheckingErrors] m!"Error in typechecking: {err.toMessageData}"
                               trace[TypecheckingErrors] m!"Error in typechecking: aAbs was expected to have type \n\t{← instantiateMVars expectedA} \nbut has type \n\t{← instantiateMVars =<< inferType aAbs}"
 
                               -- the mismatch is probably caused because something else needs to be generalized
@@ -52,11 +51,10 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
                               return e.updateApp! fAbs aAbs
                               -- if this doesn't typecheck, that means probably that term has been generalized,
                               -- but type still has the pattern (or a comp rule was used).
-                              -- so to fix it, we should discard the proof entirely (by making it a mvar
+                              -- so to fix it, we should discard this portion of the proof entirely (by making it a mvar)
                           else
                             let fAbs ← visit f depth
                             let aAbs ← visit a depth
-                            -- check $ .app fAbs aAbs
                             return e.updateApp! fAbs aAbs
 
       | .mdata _ b       => return e.updateMData! (← visit b depth)
@@ -78,7 +76,6 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
                               --"withLocalDecl" temporarily adds "n : dAbs" to context, storing the fvar in placeholder
                               let updatedLambda ← withLocalDecl n bi dAbs (fun placeholder => do
                                 let b := b.instantiate1 placeholder
-                                -- logInfo m!"lamda body: {b}"
                                 let bAbs ←
                                   if (←  liftM <| withoutModifyingState (isDefEq dAbs d)) then
                                     visit b depth-- now it's safe to recurse on b (no loose bvars)
@@ -90,7 +87,7 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
                               if updatedLambda.hasLooseBVars then
                                 logInfo m!"Loose BVars detected on expression {e}"
                               return updatedLambda
-      | .forallE n d b bi => --logInfo m!"Recursing under forall {d}"
+      | .forallE n d b bi =>
                               let dAbs ← visit d depth
                               --"withLocalDecl" temporarily adds "n : dAbs" to context, storing the fvar in placeholder
                               let updatedForAll ← withLocalDecl n bi dAbs (fun placeholder => do
@@ -102,30 +99,19 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
       -- when we encounter a theorem used in the proof
       -- check whether that theorem has the variable we're trying to generalize
       -- if it does, generalize the theorem accordingly, and make its proof an mvar.
-      | .const n us      => let constType ← inferType (.const n us) -- this ensures that univverse levels are instantiated correctly
-                            -- logInfo m!"name {n}"
-                            -- if marked as a theorem not to explore, do not recurse
-                            -- if n.toString.endsWith "_opaque" then
-                              -- logInfo m!"!!!HERE IS THE MATCH!! WILL NOT RECURSE"
-                              -- return e
+      | .const n us      => let constType ← inferType (.const n us) -- this ensures that universe levels are instantiated correctly
 
                             if depth ≥ 2 then return e
 
                             else
-                                -- if (← containsExpr p constType) then
                                 let genConstType ← visit constType (depth+1)  -- expr for generalized proof statment
                                 -- if the const does have the pattern in its definition, it is a property we should generalize
-                                -- it may be safer to just check whether the generalized type has any meta-variables at all,
-                                -- rather than looking for ones of a specific type, since there's a chance of false negatives with the latter
                                 if genConstType.hasExprMVar then
                                   let m ← mkFreshExprMVarAt lctx linsts genConstType (kind := .synthetic) (userName := mkAbstractedName n)-- mvar for generalized proof
-                                  -- logInfo m!"made mvar {m} of type {genConstType}"
                                   return m
-
                                 -- otherwise, we don't need to expand the definition of the const
                                 else return e
-      | e                => --logInfo m!"Can't recurse under this expression \n {e}"
-                            return e
+      | e                => return e
 
     if e.hasLooseBVars then
       logInfo "Loose BVars detected, so we visit children."
@@ -136,10 +122,7 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
       let (_, _, p) ← openAbstractMVarsResult pAbs
       if !e.isMVar && (←  liftM <|  withoutModifyingState (isDefEq e p)) then
         -- since the type of `p` may be slightly different each time depending on the context it's in, we infer its type each time
-        let m ← mkFreshExprMVarAt lctx linsts (← inferType p) (userName := placeholderName) --(kind := .syntheticOpaque) -- replace every occurrence of pattern with mvar
-        -- let m ← mkFreshExprMVar (← inferType p) (userName := `n) -- replace every occurrence of pattern with mvar
-        -- let m ← mkFreshExprMVar pType -- replace every occurrence of pattern with mvar
-        -- logInfo m!"made mvar {m} of type {pType}"
+        let m ← mkFreshExprMVarAt lctx linsts (← inferType p) (userName := placeholderName) -- replace every occurrence of pattern with mvar
         return m
       -- otherwise, "e" might contain the pattern...
       else

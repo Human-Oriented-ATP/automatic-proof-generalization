@@ -66,6 +66,7 @@ partial def antiUnifyCore (e e' : Expr) : ReaderT (LocalContext × LocalInstance
         throwError m!"Unsupported case: Loose free variable {var} in anti-unification."
       return ← mkLetFVars #[var] bA
   | .app f a, .app f' a' =>
+    -- it is important for the types of `f` and `f'` to match up, otherwise, one would be comparing expressions of different types in the recursive step
     if ← liftM <| withoutModifyingState <| isDefEq (← inferType f) (← inferType f') then
       return .app (← antiUnifyCore f f') (← antiUnifyCore a a')
     else
@@ -83,9 +84,6 @@ partial def antiUnifyCore (e e' : Expr) : ReaderT (LocalContext × LocalInstance
   | e, .mdata md' e' =>
     return .mdata md' (← antiUnifyCore e e')
   | .mvar m, e' =>
-    -- if ← m.isAssigned then
-    --   return ← antiUnifyCore (← instantiateMVars (.mvar m)) e'
-    -- else
     -- making `m` the placeholder if the assignment is consistent with previous mismatches
     if (← get).all fun mismatch ↦ (mismatch.placeholder != m) || (mismatch.placeholder == m && mismatch.right == e') then
       trace[AntiUnify] m!"Adding mismatch: {m} ≠ {e'}"
@@ -94,9 +92,6 @@ partial def antiUnifyCore (e e' : Expr) : ReaderT (LocalContext × LocalInstance
     else
       createAntiunifyingMVar
   | e, .mvar m' =>
-    -- if ← m'.isAssigned then
-    --   return ← antiUnifyCore e (← instantiateMVars (.mvar m'))
-    -- else
     -- making `m'` the placeholder if the assignment is consistent with previous mismatches
     if (← get).all fun mismatch ↦ (mismatch.placeholder != m') || (mismatch.placeholder == m' && mismatch.left == e) then
       trace[AntiUnify] m!"Adding mismatch: {e} ≠ {m'}"
