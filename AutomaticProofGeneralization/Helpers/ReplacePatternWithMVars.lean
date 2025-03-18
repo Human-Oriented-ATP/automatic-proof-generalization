@@ -18,7 +18,7 @@ Roughly implemented like kabstract, with the following differences:
   kabstract doesn't look under binders, but this creates LocalDecls so we can still look under binders
 -/
 partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) (linsts : LocalInstances) (detectConflicts? := false) : StateT (List Expr) MetaM Expr := do
-  logInfo m!"We are replacing the pattern {p}:{← inferType p} with mvars."
+  -- logInfo m!"We are replacing the pattern {p}:{← inferType p} with mvars."
   -- abstracting `p` so that it can be transported to other meta-variable contexts
   let pAbs ← abstractMVars p (levels := false) -- the `(levels := false)` prevents unusual instantiations across universe levels
 

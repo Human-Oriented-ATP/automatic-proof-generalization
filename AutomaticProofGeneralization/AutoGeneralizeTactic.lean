@@ -15,30 +15,31 @@ initialize
 def autogeneralize (thmName : Name) (pattern : Expr) (occs : Occurrences := .all) (consolidate : Bool := false) : TacticM Unit := withMainContext do
   -- Get details about the un-generalized proof we're going to generalize
   let (thmType, thmProof) ← getTheoremAndProof thmName
-  trace[ProofPrinting] m!"!Tactic Initial Proof: { thmProof}"
+  trace[ProofPrinting] m!"Initial Proof: { thmProof}"
+
 
   -- Get the generalized theorem (replace instances of pattern with mvars)
   let mut genThmProof := thmProof
   let mut dependenciesToGeneralize := [] -- keep track of dependencies of what must be generalized first
   (_, dependenciesToGeneralize) ← replacePatternWithMVars genThmProof pattern (← getLCtx) (← getLocalInstances) (detectConflicts? := true)  |>.run [] -- replace instances of f's old value with metavariables
-  trace[ProofPrinting] m!"!Tactic Generalized Proof After Abstraction: { genThmProof}"
 
   -- Generalize all constants that `pattern` has dependencies on, and then generalize `pattern`
   dependenciesToGeneralize := dependenciesToGeneralize.eraseDups ++ [pattern]
+  trace[ProofPrinting] m!"We are abstracting the following constants: { dependenciesToGeneralize}"
   for dep in dependenciesToGeneralize do
     genThmProof ← replacePatternWithMVars genThmProof dep (← getLCtx) (← getLocalInstances) (detectConflicts? := false) |>.run' []
 
-  trace[ProofPrinting] m!"!Tactic Generalized Proof After Abstraction: {genThmProof}"
+  trace[ProofPrinting] m!"Generalized Proof After Abstraction: {genThmProof}"
 
   -- Consolidate mvars within proof term by running a typecheck
   genThmProof ← consolidateWithTypecheck genThmProof
-  trace[ProofPrinting] m!"!Tactic Generalized Proof After Typecheck: {genThmProof}"
+  trace[ProofPrinting] m!"Generalized Proof After Typecheck: {genThmProof}"
   let genThmType ← inferType genThmProof
 
   -- Re-specialize the occurrences of the pattern we are not interested in
   if !(occs == .all) then do
     genThmProof ← respecializeOccurrences thmType genThmProof pattern (occsToStayAbstracted := occs) consolidate
-    trace[ProofPrinting] m!"!Tactic Generalized Type After Unifying: {← inferType genThmProof}"
+    trace[ProofPrinting] m!"Generalized Type After Unifying: {← inferType genThmProof}"
 
   -- (If desired) make all abstracted instances of the pattern the same.
   if consolidate then do
