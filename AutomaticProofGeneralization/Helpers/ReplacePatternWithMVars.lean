@@ -43,6 +43,7 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
                               -- the mismatch is probably caused because something else needs to be generalized
                               let (_result, problemTerms) ← getTermsToGeneralize expectedA inferredA
                               trace[TypecheckingErrors] m!"The mismatch can probably be fixed by generalizing the terms {problemTerms}"
+                              modify fun terms ↦ (problemTerms.map Prod.snd ++ terms).eraseDups
                               return e.updateApp! fAbs aAbs
       | .mdata _ b       => return e.updateMData! (← visit b depth)
       | .proj _ _ b      => return e.updateProj! (← visit b depth)
