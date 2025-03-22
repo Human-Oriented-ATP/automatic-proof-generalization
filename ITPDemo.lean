@@ -4,6 +4,7 @@ Demos of proof generalization tactic in Lean
 import AutomaticProofGeneralization.AutoGeneralizeTactic
 import AutomaticProofGeneralization.Formalizations.irrationality_of_sqrts
 import AutomaticProofGeneralization.Formalizations.impossible_graphs
+import AutomaticProofGeneralization.Formalizations.bezout_identity
 
 open Autogeneralize
 open Real
@@ -88,3 +89,9 @@ example :
 
   apply nonexistent_graph.Gen;
   exact Nat.lt_sub_of_add_lt hn
+
+#check bezout_identity
+
+example : True := by
+  autogeneralize ℤ in bezout_identity
+  trivial
