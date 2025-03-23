@@ -56,3 +56,11 @@ def setEqualAllMVarsOfType (mvarArray : Array MVarId) (t : Expr) : MetaM Unit :=
 /-- Pull out mvars as hypotheses to create a chained implication-/
 def pullOutMissingHolesAsHypotheses (proof : Expr) : MetaM Expr :=
   return (← abstractMVars proof).expr
+
+/-- Replace the free variables in an expression with meta-variables. -/
+def replaceFVarsWithMVars (e : Expr) : MetaM Expr := do
+  let result := collectFVars {} e
+  let fvarIds := result.fvarIds
+  let eAbs ← mkLambdaFVars (fvarIds.map .fvar) e
+  let ⟨_, _, eNew⟩ ← lambdaMetaTelescope eAbs (maxMVars? := some fvarIds.size)
+  return eNew
