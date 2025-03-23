@@ -68,7 +68,15 @@ partial def antiUnifyCore (e e' : Expr) : ReaderT (LocalContext × LocalInstance
   | .app f a, .app f' a' =>
     -- it is important for the types of `f` and `f'` to match up, otherwise, one would be comparing expressions of different types in the recursive step
     if ← liftM <| withoutModifyingState <| isDefEq (← inferType f) (← inferType f') then
-      return .app (← antiUnifyCore f f') (← antiUnifyCore a a')
+      let mismatches ← get
+      let fA ← antiUnifyCore f f'
+      let aA ← antiUnifyCore a a'
+      if fA.isMVar && aA.isMVar then do
+        trace[AntiUnify] m!"Detected mismatches in both function and argument, creating mismatch for the application instead: {e}\n{e'}"
+        set mismatches
+        createAntiunifyingMVar
+      else
+        return .app fA aA
     else
       createAntiunifyingMVar
   | .proj n idx s, .proj n' idx' s' =>
