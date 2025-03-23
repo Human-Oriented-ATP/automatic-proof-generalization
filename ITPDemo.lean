@@ -49,6 +49,23 @@ example: ∀ (p n : ℕ), Nat.Prime p → Irrational (√p + n) := by
   exact irrat_sum_sqrt.Gen p p_prime n
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+A demonstration of robust generalization of _repeated_ uses of a constant.
+Each occurrence of _3_ below generalizes separately.
+
+Generalization of the proof that that are 3^3 functions from a set A of size 3 to a set B of size 3
+to the proof that there are m^n functions from a set A of size n to a set B of size m.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+
+example
+  {α β : Type} [inst : Fintype α] [inst_1 : Fintype β] [inst_2 : DecidableEq α]:
+  ∀ (n m : ℕ), Fintype.card α = n → Fintype.card β = m → Fintype.card (α → β) = m ^ n:=
+by
+  let fun_set : Fintype.card α = 3 → Fintype.card β = 3 → Fintype.card (α → β) = 3 ^ 3 := by {intros α_card  β_card; rw [Fintype.card_pi, Finset.prod_const]; congr}
+  autogeneralize 3 in fun_set
+  assumption
+
+
+/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 A demonstration of robust generalization of _dependent_ uses of a constant.
 Generalizing the _2_ below automatically generalizes the _4_.
 
