@@ -108,9 +108,19 @@ example: ∀ (p : ℕ), Nat.Prime p → Irrational (√p + 17) := by
 
   assumption
 
+/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+A demonstration of _generalizing non-numerical constants_ .
 
+Generalization of Bezout's identity on the integers (ℤ)
+to an arbitrary Euclidean domain.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+
+ /- Start with Bezout's identity in the integers -/
 #check bezout_identity
 
-example : True := by
+example := by
+
+  /- Find the proof-based generalization, and add it as a theorem in the context. -/
   autogeneralize ℤ in bezout_identity
-  trivial
+
+  assumption
