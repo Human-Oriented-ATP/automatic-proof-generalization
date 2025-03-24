@@ -39,7 +39,6 @@ def autogeneralize (thmName : Name) (pattern : Expr) (occs : Occurrences := .all
   -- Re-specialize the occurrences of the pattern we are not interested in
   if !(occs == .all) then do
     genThmProof ← respecializeOccurrences thmType genThmProof pattern (occsToStayAbstracted := occs) consolidate
-    trace[ProofPrinting] m!"Generalized Type After Unifying: {← inferType genThmProof}"
 
   -- (If desired) make all abstracted instances of the pattern the same.
   if consolidate then do
@@ -51,6 +50,7 @@ def autogeneralize (thmName : Name) (pattern : Expr) (occs : Occurrences := .all
 
   -- Give the meta-variables in the proof more human-readable names
   relabelMVarsIn genThmProof
+  trace[ProofPrinting] m!"Generalized Proof After Renaming: {genThmProof}"
 
   -- Pull out the holes (the abstracted term & all hypotheses on it) into a chained implication.
   genThmProof ←  pullOutMissingHolesAsHypotheses genThmProof
