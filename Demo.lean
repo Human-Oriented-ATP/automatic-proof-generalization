@@ -150,7 +150,7 @@ example : ∀ (T : Type)        -- If you have an arbitrary set
   /- Find the proof-based generalization, and add it as a theorem in the context. -/
   autogeneralize_basic (Add.add) in cancellation
   autogeneralize (0) as e in cancellation.Gen
-  autogeneralize_basic (ℤ) in cancellation.Gen.Gen
+  autogeneralize (ℤ) in cancellation.Gen.Gen
 
   assumption
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
