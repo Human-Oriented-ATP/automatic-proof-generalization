@@ -14,4 +14,4 @@ lake exe cache get
 
 in the terminal to download the dependencies.
 
-The relevant examples are in the `ITPDemo.lean` file in the top-level directory of this folder.
+The relevant examples are in the `Demo.lean` file in the top-level directory of this folder.
