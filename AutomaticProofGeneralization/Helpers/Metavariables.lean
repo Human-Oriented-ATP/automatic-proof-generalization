@@ -1,4 +1,5 @@
 import Lean
+import AutomaticProofGeneralization.Helpers.Naming
 
 open Lean Elab Tactic Meta Term Command
 
@@ -48,7 +49,7 @@ def hasMVarOfType (t e: Expr) : MetaM Bool := do
 
 /-- Make all mvars in mvarArray with the type t the same  -/
 def setEqualAllMVarsOfType (mvarArray : Array MVarId) (t : Expr) : MetaM Unit := do
-  let m ← mkFreshExprMVar t -- new mvar to replace all others with the same type
+  let m ← mkFreshExprMVar t (userName := placeholderName) -- new mvar to replace all others with the same type
   for mv in mvarArray do
     if ← isDefEq (← mv.getType) t then
       if !(← mv.isAssigned) then mv.assign m
