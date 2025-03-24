@@ -46,11 +46,11 @@ def autogeneralize (thmName : Name) (pattern : Expr) (occs : Occurrences := .all
     let mvarsInProof := (← getMVars genThmProof) ++ (← getMVars genThmType)
     setEqualAllMVarsOfType mvarsInProof (← inferType pattern)
 
-  -- Give the meta-variables in the proof more human-readable names
-  relabelMVarsIn genThmProof
-
   -- Remove repeating hypotheses
   genThmProof ← removeRepeatingHypotheses genThmProof
+
+  -- Give the meta-variables in the proof more human-readable names
+  relabelMVarsIn genThmProof
 
   -- Pull out the holes (the abstracted term & all hypotheses on it) into a chained implication.
   genThmProof ←  pullOutMissingHolesAsHypotheses genThmProof
