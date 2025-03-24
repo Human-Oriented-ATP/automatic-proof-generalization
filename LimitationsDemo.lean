@@ -23,8 +23,8 @@ theorem dvd_left_of_dvd_prod {a b c : ℤ} (h : a ∣ b) : a ∣ (b * c) := by
 
 set_option trace.AntiUnify true
 
-example : True := by
-  first
+example : True := by -- this generalization fails
+  first -- the `first` tactic combinator runs the first tactic in the sequence that succeeds
     | autogeneralize ℤ in dvd_left_of_dvd_prod
     | dbg_trace "Generalization threw an error"
   trivial
@@ -35,8 +35,36 @@ theorem dvd_left_of_dvd_prod_fixed {a b c : ℤ} (h : a ∣ b) : a ∣ (b * c) :
   use (d * c)
   rw [hd, mul_assoc]
 
-example : True := by
-  first
+example : True := by -- this generalization succeeds
+  first -- the `first` tactic combinator runs the first tactic in the sequence that succeeds
     | autogeneralize ℤ in dvd_left_of_dvd_prod_fixed
     | dbg_trace "Generalization threw an error"
   trivial
+
+theorem exists_left_id : ∀ (x : ℤ), ∃ (y : ℤ), y + x = x := by
+  intro x
+  use (0 : ℤ)
+  exact zero_add x
+
+example : True := by -- this generalization fails
+  first -- the `first` tactic combinator runs the first tactic in the sequence that succeeds
+   | autogeneralize ℤ in exists_left_id
+   | dbg_trace "Generalization threw an error"
+  trivial
+
+theorem exists_left_id_int : ∀ (x : ℤ), ∃ (y : ℤ), y + x = x := by
+  intro x
+  use (0 : ℤ)
+  exact Int.zero_add x -- this proof uses the more specific `Int.zero_add`, which does not rely on typeclasses
+
+example : True := by -- this generalization succeeds
+  first -- the `first` tactic combinator runs the first tactic in the sequence that succeeds
+   | autogeneralize ℤ in exists_left_id_int
+   | dbg_trace "Generalization threw an error"
+  trivial
+
+-- This would be an ideal generalization of `exists_left_id`
+theorem exists_left_id_gen {T} [AddGroup T] : ∀ (x : T), ∃ (y : T), y + x = x := by
+  intro x
+  use (0 : T)
+  exact zero_add x
