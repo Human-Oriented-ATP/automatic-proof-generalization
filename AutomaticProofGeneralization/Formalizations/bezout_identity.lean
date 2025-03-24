@@ -29,7 +29,7 @@ theorem bezout_identity : ∀ (x y : ℤ), y ≠ 0 → ∃ (h k : ℤ), isGCD (h
 
   -- Consider the set A = {hx + ky | x,y ∈ ℤ}
   let A := {z : ℤ | ∃ h k : ℤ, z = h * x + k * y}
-  -- Consider the set B = {|z| | z ∈ A, |z| ≠ 0} of non-zero absolute values
+
   have A_add : ∀ a ∈ A, ∀ b ∈ A, a + b ∈ A := by
     rintro a ⟨h, k, a_eq⟩ b ⟨h', k', b_eq⟩
     use (discharger := skip) (h + h'), (k + k')
@@ -41,6 +41,7 @@ theorem bezout_identity : ∀ (x y : ℤ), y ≠ 0 → ∃ (h k : ℤ), isGCD (h
     rw [a_eq]
     rw [Int.mul_add, ← Int.mul_assoc, ← Int.mul_assoc]
 
+  -- Consider the set B = {|z| | z ∈ A, |z| ≠ 0} of non-zero absolute values
   let B := (Int.natAbs '' A) \ {0}
   -- Show B is non-empty by constructing an element
   have hB_nonempty : ∃ b : ℕ, b ∈ B := by
