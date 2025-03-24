@@ -128,7 +128,29 @@ example: ∀ (p : ℕ), Nat.Prime p → Irrational (√p + 17) := by
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 A demonstration of _generalizing non-numerical constants_ .
 
-Generalization of Bezout's identity on the integers (ℤ)
+Generalization of the addition operation _+_ in a proof adapted from mathlib's `Int.add_left_cancel`
+to a general binary function with certain properties.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+
+example : ∀ (f : ℤ → ℤ → ℤ),
+  (∀ (a : ℤ), f 0 a = a) → -- additive identity
+  (∀ (a : ℤ), f (-a) a = 0) → -- additive inverse
+  (∀ (a b c : ℤ), f (f a b) c = f a (f b c)) → -- associativity
+  ∀ (a b c : ℤ), f a b = f a c → b = c
+:= by
+
+  /- Start with the theorem that "a + b = a + c" implies "b = c"  -/
+  let cancellation : ∀ a b c : ℤ, a + b = a + c → b = c := by {intros a b c h; replace h : -a + (a + b) = -a + (a + c) := by {rw [h]}; rw [← Int.add_assoc, Int.add_left_neg, ← Int.add_assoc, Int.add_left_neg, Int.zero_add, Int.zero_add] at h; exact h;}
+
+  /- Find the proof-based generalization, and add it as a theorem in the context. -/
+  autogeneralize_basic (Add.add) in cancellation
+
+  assumption
+
+/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+A demonstration of _generalizing non-numerical constants_ .
+
+Generalization of Bezout's identity on the integers _ℤ_
 to an arbitrary Euclidean domain.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 

@@ -67,7 +67,8 @@ But generalizes all occurrences in the same way.  Behaves as in (Pons, 2000)
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
 /-- A tactic that generalizes all instances of `pattern` in a local hypotheses `h` by requiring `pattern` to have only the properties used in the proof of `h`.
-    Behaves as in ("Generalization in Type Theory Based Proof Assistants" by Olivier Pons, 2000).-/
+    Behaves as in ("Generalization in Type Theory Based Proof Assistants" by Olivier Pons, 2000) in that it doesn't generalize repeated constants in different ways
+    But with the additional capability of generalizing dependent constants -/
 elab "autogeneralize_basic" pattern:term "in" h:ident : tactic => do
   let pattern ← (Lean.Elab.Term.elabTerm pattern none)
   let h := h.getId
