@@ -20,7 +20,6 @@ def respecializeOccurrences (thmType : Expr) (genThmProof : Expr) (pattern : Exp
     abstractToOneMVar thmType pattern occsToStayAbstracted
   else
     abstractToDiffMVars thmType pattern occsToStayAbstracted
-  logInfo m!"!User Generalized Type: {userThmType}"
 
   -- Keep a record of mvars to keep track of
   let genThmType ← inferType genThmProof
