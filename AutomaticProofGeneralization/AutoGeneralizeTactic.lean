@@ -16,7 +16,6 @@ def autogeneralize (thmName : Name) (pattern : Expr) (customName? : Option Name 
   -- Get details about the un-generalized proof we're going to generalize
   let (thmType, thmProof) ← getTheoremAndProof thmName
   trace[ProofPrinting] m!"Initial Proof: { thmProof}"
-  trace[ProofPrinting] m!"Custom name: {customName?}"
 
   -- Get the generalized theorem (replace instances of pattern with mvars)
   let mut genThmProof := thmProof
@@ -49,7 +48,7 @@ def autogeneralize (thmName : Name) (pattern : Expr) (customName? : Option Name 
   genThmProof ← removeRepeatingHypotheses genThmProof
 
   -- Give the meta-variables in the proof more human-readable names
-  relabelMVarsIn genThmProof
+  relabelMVarsIn genThmProof customName?
   trace[ProofPrinting] m!"Generalized Proof After Renaming: {genThmProof}"
 
   -- Pull out the holes (the abstracted term & all hypotheses on it) into a chained implication.

@@ -11,7 +11,7 @@ def typePreferredNames := #[`T, `R, `P] -- preferred names for types
 def funcPreferredNames := #[`f, `g, `h] -- preferred names for functions
 
 /-- Relabel the metavariables in the expression with their preferred names. -/
-def relabelMVarsIn (e : Expr) : MetaM Unit := do
+def relabelMVarsIn (e : Expr) (customName? : Option Name := none) : MetaM Unit := do
   let mvars ← getMVars e
   let placeholderMVars ← mvars.filterM fun mvar => do
     return (← mvar.getTag).getRoot.toString.startsWith placeholderName.toString
@@ -21,22 +21,28 @@ def relabelMVarsIn (e : Expr) : MetaM Unit := do
   let mut funcMVars := #[]
   let mut otherMVars := #[]
 
-  for mvar in placeholderMVars do
-    let mvarType ← mvar.getType
-    if mvarType.isType then
-      typeMVars := typeMVars.push mvar
-    else if mvarType.isArrow then
-      funcMVars := funcMVars.push mvar
-    else
-      otherMVars := otherMVars.push mvar
+  -- If custom name provided, use it for all placeholder MVars and return early
+  if let some name := customName? then
+    for mvar in placeholderMVars do
+      mvar.setUserName name
 
-  -- Assign names based on type
-  for (mvar, name) in typeMVars.zip typePreferredNames do
-    mvar.setUserName name
-  for (mvar, name) in funcMVars.zip funcPreferredNames do
-    mvar.setUserName name
-  for (mvar, name) in otherMVars.zip preferredNames do
-    mvar.setUserName name
+  -- Otherwise, assign names based on type
+  else
+    for mvar in placeholderMVars do
+      let mvarType ← mvar.getType
+      if mvarType.isType then
+        typeMVars := typeMVars.push mvar
+      else if mvarType.isArrow then
+        funcMVars := funcMVars.push mvar
+      else
+        otherMVars := otherMVars.push mvar
+
+    for (mvar, name) in typeMVars.zip typePreferredNames do
+      mvar.setUserName name
+    for (mvar, name) in funcMVars.zip funcPreferredNames do
+      mvar.setUserName name
+    for (mvar, name) in otherMVars.zip preferredNames do
+      mvar.setUserName name
 
 /-- Turn a lemma name into its generalized version by prefixing it with `gen_` and truncating. -/
 def mkAbstractedName (n : Name) : Name :=
