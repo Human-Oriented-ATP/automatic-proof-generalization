@@ -12,7 +12,9 @@ open Lean Elab Tactic Meta Term Command
 
 set_option pp.showLetValues false
 set_option autoImplicit false
--- set_option trace.ProofPrinting true
+set_option linter.unusedVariables false
+
+
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Generalization of the proof that √17 is irrational
@@ -132,11 +134,14 @@ Generalization of the addition operation _+_ in a proof adapted from mathlib's `
 to a general binary function with certain properties.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
-example : ∀ (f : ℤ → ℤ → ℤ),
-  (∀ (a : ℤ), f 0 a = a) → -- additive identity
-  (∀ (a : ℤ), f (-a) a = 0) → -- additive inverse
-  (∀ (a b c : ℤ), f (f a b) c = f a (f b c)) → -- associativity
-  ∀ (a b c : ℤ), f a b = f a c → b = c
+example : ∀ (T : Type)        -- If you have an arbitrary set
+  [inverse : Neg T]           -- with a symbol representing the inverse,
+  (e : T)                     -- and a symbol representing the identity,
+  (f : T → T → T),            -- and a binary operation
+  (∀ (a : T), f e a = a) →    -- s.t. the identity element is left-neutral w.r.t. the operation
+  (∀ (a : T), f (-a) a = e) → -- and every element has a left inverse under the operation
+  (∀ (a b c : T), f (f a b) c = f a (f b c)) → -- and the operation is associative,
+  ∀ (a b c : T), f a b = f a c → b = c -- then the operation is left-cancellative.
 := by
 
   /- Start with the theorem that "a + b = a + c" implies "b = c"  -/
@@ -144,9 +149,10 @@ example : ∀ (f : ℤ → ℤ → ℤ),
 
   /- Find the proof-based generalization, and add it as a theorem in the context. -/
   autogeneralize_basic (Add.add) in cancellation
+  autogeneralize (0) as e in cancellation.Gen
+  autogeneralize_basic (ℤ) in cancellation.Gen.Gen
 
   assumption
-
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 A demonstration of _generalizing non-numerical constants_ .
 
