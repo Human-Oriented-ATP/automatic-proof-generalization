@@ -12,11 +12,11 @@ initialize
   registerTraceClass `ProofPrinting
 
 /-- Generalize a term in a theorem to an arbitrary constant of its type, adding in necessary hypotheses along the way -/
-def autogeneralize (thmName : Name) (pattern : Expr) (occs : Occurrences := .all) (consolidate : Bool := false) : TacticM Unit := withMainContext do
+def autogeneralize (thmName : Name) (pattern : Expr) (customName? : Option Name := none) (occs : Occurrences := .all) (consolidate : Bool := false) : TacticM Unit := withMainContext do
   -- Get details about the un-generalized proof we're going to generalize
   let (thmType, thmProof) ← getTheoremAndProof thmName
   trace[ProofPrinting] m!"Initial Proof: { thmProof}"
-
+  trace[ProofPrinting] m!"Custom name: {customName?}"
 
   -- Get the generalized theorem (replace instances of pattern with mvars)
   let mut genThmProof := thmProof
@@ -66,13 +66,20 @@ Autogeneralizes the "pattern" in the hypothesis "h",
 But generalizes all occurrences in the same way.  Behaves as in (Pons, 2000)
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
+syntax customName := "as" ident
+def decodeCustomName (stx? : Option (TSyntax ``customName)) : Option Name :=
+  stx?.bind fun
+    | `(customName| as $name) => some name.getId
+    | _ => none
+
 /-- A tactic that generalizes all instances of `pattern` in a local hypotheses `h` by requiring `pattern` to have only the properties used in the proof of `h`.
     Behaves as in ("Generalization in Type Theory Based Proof Assistants" by Olivier Pons, 2000) in that it doesn't generalize repeated constants in different ways
     But with the additional capability of generalizing dependent constants -/
-elab "autogeneralize_basic" pattern:term "in" h:ident : tactic => do
+elab "autogeneralize_basic" pattern:term customName?:(customName)? "in" h:ident : tactic => do
   let pattern ← (Lean.Elab.Term.elabTerm pattern none)
   let h := h.getId
-  autogeneralize h pattern (occs:=.all) (consolidate:=true)
+  let customName? := decodeCustomName customName?
+  autogeneralize h pattern customName? (occs:=.all) (consolidate:=true)
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Autogeneralizes the "pattern" in the hypothesis "h",
@@ -84,13 +91,15 @@ def decodeOccurrences : TSyntax `Autogeneralize.occurrences → List Nat
   | `(occurrences| at occurrences [$occs*]) => (occs.map TSyntax.getNat).toList
   | _ => unreachable!
 
+
 /-- A tactic that generalizes all instances of `pattern` in a local hypotheses `h` by requiring `pattern` to have only the properties used in the proof of `h`.-/
-elab "autogeneralize" pattern:term "in" h:ident occs:(Autogeneralize.occurrences)? : tactic => do
+elab "autogeneralize" pattern:term customName?:(customName)? "in" h:ident occs:(Autogeneralize.occurrences)? : tactic => do
   let pattern ← (Lean.Elab.Term.elabTerm pattern none)
   let h := h.getId
   let occs := occs.map decodeOccurrences
+  let customName? := decodeCustomName customName?
   match occs with
-  | some occsList => autogeneralize h pattern (Occurrences.pos occsList)
-  | none => autogeneralize h pattern -- generalize all occurrences (default: to different mvars)
+  | some occsList => autogeneralize h pattern customName? (Occurrences.pos occsList)
+  | none => autogeneralize h pattern customName? -- generalize all occurrences (default: to different mvars)
 
 end Autogeneralize
