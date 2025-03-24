@@ -1,3 +1,8 @@
+/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Demos where the current implementation produces suboptimal outputs.
+Highlights possibilities for future workk.
+- - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - -/
+
 import AutomaticProofGeneralization.AutoGeneralizeTactic
 import Mathlib.Tactic
 
