@@ -1,3 +1,6 @@
+window.addEventListener("load",buildNav);
+
+
 function buildNav() {
     var navElements = getNavElements()
     wrapUpContent()
@@ -7,7 +10,6 @@ function buildNav() {
     expandSubMenuOfCurrentNavItem()
     selectCurrentSubNavItem()
     activateMenuButton()
-    // $(".navbarcollapsebutton").click()
 }
 
 /*-------------------------------------------------------*/
