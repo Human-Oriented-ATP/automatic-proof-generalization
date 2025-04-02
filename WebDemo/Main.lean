@@ -1,5 +1,5 @@
 import VersoBlog
-import MotivatedMoves.AutoGeneralization.Demo.Demo
+import WebDemo.Demo
 
 open Verso Genre Blog Site Syntax
 
@@ -43,8 +43,8 @@ def theme : Theme := { Theme.default with
 -- def demoSite : Site := site Walkthrough.Blog / static "static" ← "Demo/static_files"  -- copy from static `Demo/static_files' to '_out/walkthroughsite/static'
 
 /-- with links -/
-def demoSite : Site := site MotivatedMoves.AutoGeneralization.Demo.Demo.DemoPages.Test /
-  static "static" ← "MotivatedMoves/AutoGeneralization/Demo/static_files"
-  "Test" MotivatedMoves.AutoGeneralization.Demo.Demo.DemoPages.Test
+def demoSite : Site := site WebDemo.WebDemo.DemoPages.Test /
+  static "static" ← "WebDemo/static_files"
+  "Test" WebDemo.WebDemo.DemoPages.Test
 
 def main := blogMain theme demoSite

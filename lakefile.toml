@@ -1,9 +1,12 @@
 name = "AutomaticProofGeneralization"
 version = "0.1.0"
-defaultTargets = ["automaticproofgeneralization"]
+defaultTargets = ["webdemo"]
 
 [[lean_lib]]
 name = "AutomaticProofGeneralization"
+
+[[lean_lib]]
+name = "WebDemo"
 
 [[require]]
 name = "mathlib"
@@ -14,3 +17,9 @@ rev = "v4.18.0-rc1"
 name = "verso"
 scope = "leanprover"
 rev = "v4.18.0-rc1"
+
+[[lean_exe]]
+name = "webdemo"
+srcDir = "WebDemo"
+root = "Main"
+supportInterpreter = true
