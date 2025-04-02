@@ -332,3 +332,8 @@ code {
 	overflow-x: auto; /* Enables horizontal scrolling if content overflows */
 	white-space: pre; /* Preserves spaces and line breaks */
   }
+
+  code.math.inline {
+    background-color: transparent !important;
+    padding: 0
+  }
