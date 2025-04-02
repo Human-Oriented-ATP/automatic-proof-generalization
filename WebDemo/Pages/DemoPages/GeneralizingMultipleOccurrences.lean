@@ -17,32 +17,17 @@ Consider the following proof that $`\sqrt{17} + 17` is irrational.
 ```lean generalizingMultipleOccurrences
 theorem irrat_sum_sqrt : Irrational (17 + Real.sqrt (17:ℕ)) := by
   -- it suffices to show that `√17` is irrational, since the result of adding a natural number to an irrational number is irrational.
+
   apply Irrational.nat_add
+
   -- the rest of the proof shows that √17 is irrational
+
   apply irrat_def
-  rintro ⟨a, b, ⟨copr, h⟩⟩
-  have a_div : 17 ∣ a := by
-    have c : 17 ∣ a * a := by
-      rw [h, mul_assoc]; exact Nat.dvd_mul_right _ _
-    rw [Nat.Prime.dvd_mul prime_seventeen] at c
-    cases c <;> assumption
+  rintro ⟨a, b, ⟨copr, h⟩⟩; have a_div : 17 ∣ a := by {have c : 17 ∣ a * a := by {rw [h, mul_assoc]; exact Nat.dvd_mul_right _ _}; rw [Nat.Prime.dvd_mul prime_seventeen] at c; cases c <;> assumption}
   have a_is_pk : ∃ k, a = 17 * k := Iff.mp dvd_iff_exists_eq_mul_right a_div
-  obtain ⟨k, hk⟩ := a_is_pk
-  rw [hk] at h
-  symm at h
-  rw [mul_assoc, mul_assoc, mul_comm 17 k, mul_eq_mul_left_iff, ← mul_assoc k k 17] at h
-  cases h with
-  | inl h =>
-    have b_div : 17 ∣ b := by
-      have c : 17 ∣ b * b := by
-        rw [h]; exact Nat.dvd_mul_left 17 (k * k)
-      rw [Nat.Prime.dvd_mul prime_seventeen] at c
-      cases c <;> assumption
-    have p_dvd_gcd : 17 ∣ Nat.gcd a b := Iff.mpr Nat.dvd_gcd_iff ⟨a_div, b_div⟩
-    clear a_div b_div
-    rw [copr] at p_dvd_gcd
-    apply Nat.Prime.not_dvd_one prime_seventeen p_dvd_gcd
-  | inr h => apply Nat.Prime.ne_zero prime_seventeen; assumption
+  obtain ⟨k, hk⟩ := a_is_pk; rw [hk] at h; symm at h; rw [mul_assoc, mul_assoc, mul_comm 17 k, mul_eq_mul_left_iff, ← mul_assoc k k 17] at h; simp only [Nat.Prime.ne_zero prime_seventeen, or_false] at h
+  have b_div : 17 ∣ b := by {have c : 17 ∣ b * b := by {rw [h]; exact Nat.dvd_mul_left 17 (k * k)}; rw [Nat.Prime.dvd_mul prime_seventeen] at c; cases c <;> assumption}
+  have p_dvd_gcd : 17 ∣ Nat.gcd a b := Iff.mpr Nat.dvd_gcd_iff ⟨a_div, b_div⟩; clear a_div b_div; rw [copr] at p_dvd_gcd; apply Nat.Prime.not_dvd_one prime_seventeen p_dvd_gcd
 ```
 
 Generalizing this produces a proof that $`\sqrt{p}+n` is irrational for any prime $`p` and natural number $`n`.
