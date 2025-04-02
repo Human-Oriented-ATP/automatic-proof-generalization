@@ -54,7 +54,7 @@ function addNavBarOpener() {
                <div id="scrollable">
                   <div>
                      <div class="chapter" id="chapnav">
-                        <span href="#" class="chaptitle">Table of Contents</span>
+                        <span href="#" class="chaptitle">Examples</span>
                      </div>
                   </div>
                </div>
