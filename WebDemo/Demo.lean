@@ -2,4 +2,4 @@
 -- This file is so I can just write "import Walkthrough" and it will import everything.
 
 import WebDemo.Pages.Demo
-import WebDemo.Pages.DemoPages.Test
+import WebDemo.Pages.DemoPages.Introduction
