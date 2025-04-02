@@ -320,3 +320,15 @@ Change color of lean warnings
 .hl.lean .token .hover-info {
 	background-color: #d6cec3
 }
+
+
+/*******************************************
+Hide overflow on code blocks
+********************************************/
+
+
+code {
+	/* display: block; Ensures the code block takes up the full width */
+	overflow-x: auto; /* Enables horizontal scrolling if content overflows */
+	white-space: pre; /* Preserves spaces and line breaks */
+  }
