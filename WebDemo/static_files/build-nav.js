@@ -41,8 +41,8 @@ function addNavBarOpener() {
                <div id="notscrollable">
                   <div class="title">
                      <a href="/#">
-                     Hands-on <br/>
-                     Tactic Writing <br/>
+                     Automatic generalization<br/>
+                     of theorems and proofs<br/>
                      in Lean 4
                      </a>
                   </div>

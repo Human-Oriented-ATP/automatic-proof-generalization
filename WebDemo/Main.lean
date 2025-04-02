@@ -3,6 +3,8 @@ import WebDemo.Demo
 
 open Verso Genre Blog Site Syntax
 
+def title : String := "Automatic generalization of theorems and proofs"
+
 open Output Html Template Theme in
 def theme : Theme := { Theme.default with
   primaryTemplate := do
@@ -11,7 +13,7 @@ def theme : Theme := { Theme.default with
       <html>
         <head>
           <meta charset="UTF-8"/>
-          <title>{{ (← param (α := String) "title") }} " — Hands-on Lean 4 Tactic Writing"</title>
+          <title>{{ (← param (α := String) "title") }} " — " {{ title }}</title>
           {{← builtinHeader }}
           <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico"/>
           <link rel="stylesheet" href="/static/style.css"/>
@@ -24,7 +26,7 @@ def theme : Theme := { Theme.default with
         <body>
           <header>
             <div class="inner-wrap">
-            <a class="logo" href="/">"Hands-on Lean 4 Tactic Writing"</a>
+            <a class="logo" href="/">{{ title }}</a>
             {{ ← topNav }}
             </div>
           </header>
