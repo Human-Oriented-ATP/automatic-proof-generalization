@@ -9,3 +9,8 @@ name = "AutomaticProofGeneralization"
 name = "mathlib"
 scope = "leanprover-community"
 rev = "v4.18.0-rc1"
+
+[[require]]
+name = "verso"
+scope = "leanprover"
+rev = "v4.18.0-rc1"
