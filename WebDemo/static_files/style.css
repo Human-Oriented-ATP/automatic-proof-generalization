@@ -321,6 +321,18 @@ Change color of lean warnings
 	background-color: #d6cec3
 }
 
+/*******************************************
+Change color of lean comments
+********************************************/
+
+code {
+    color: #808080;
+}
+
+.hl.lean .token:not(.tactic) {
+    color: black;
+}
+
 
 /*******************************************
 Hide overflow on code blocks
@@ -337,3 +349,4 @@ code {
     background-color: transparent !important;
     padding: 0
   }
+
