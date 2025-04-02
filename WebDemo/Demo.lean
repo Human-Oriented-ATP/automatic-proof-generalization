@@ -3,3 +3,4 @@
 
 import WebDemo.Pages.Demo
 import WebDemo.Pages.DemoPages.Introduction
+import WebDemo.Pages.DemoPages.GeneralizingMultipleOccurrences

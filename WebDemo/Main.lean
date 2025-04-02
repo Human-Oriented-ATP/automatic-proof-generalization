@@ -47,5 +47,6 @@ def theme : Theme := { Theme.default with
 def demoSite : Site := site WebDemo.Pages.DemoPages.Introduction /
   static "static" ← "WebDemo/static_files"
   "Introduction" WebDemo.Pages.DemoPages.Introduction
+  "Generalizing multiple occurrences" WebDemo.Pages.DemoPages.GeneralizingMultipleOccurrences
 
 def main := blogMain theme demoSite
