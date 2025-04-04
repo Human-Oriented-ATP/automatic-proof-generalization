@@ -4,7 +4,7 @@ import AutomaticProofGeneralization.Formalizations.irrationality_of_sqrts
 
 open Verso Genre Blog
 
-#doc (Page) "Introduction" =>
+#doc (Page) "Introducing Proof Generalization" =>
 
 We present an algorithm that takes as its input a theorem, a proof of the theorem, and some aspect of the theorem that can potentially be generalized. **By examining the facts utilized in the proof, this program outputs a correct generalization of the theorem and a corresponding proof.**
 
