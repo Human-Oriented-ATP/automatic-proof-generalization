@@ -22,8 +22,9 @@ So, in a proof where a constant appears multiple times, the algorithm can determ
 Consider the following proof that $`17 + \sqrt{17}` is irrational.
 
 ```lean generalizingMultipleOccurrences
-theorem irrat_sum : Irrational (17 + Real.sqrt (17:ℕ)) := by
-
+theorem irrat_sum:
+  Irrational (17 + Real.sqrt (17:ℕ)) :=
+by
   /- It suffices to show that `√17` is irrational,
      since a natural number plus an irrational is irrational. -/
   apply Irrational.nat_add
@@ -42,8 +43,9 @@ We would not want the generalization to place the primality assumption on both o
 Happily, our algorithm yields the stronger generalization that $`n+\sqrt{p}` is irrational for any natural number $`n` and prime $`p`.
 
 ```lean generalizingMultipleOccurrences
-example: ∀ (p : ℕ), Nat.Prime p → ∀ (n : ℕ), Irrational (n + √p) := by
-
+theorem irrat_sum_generalized:
+  ∀ (p : ℕ), Nat.Prime p → ∀ (n : ℕ), Irrational (n + √p) :=
+by
   /- Generalize the `17` in the proof,
      then add the generalization `irrat_sum.Gen` as a hypothesis. -/
   autogeneralize (17:ℕ) in irrat_sum
@@ -56,8 +58,9 @@ example: ∀ (p : ℕ), Nat.Prime p → ∀ (n : ℕ), Irrational (n + √p) := 
 We can also choose to selectively generalize a particular occurrence of a constant. Below, we only generalize the occurrence of $`17` under the square root, yielding the generalization that $`17+\sqrt{p}` is irrational for any prime $`p`.
 
 ```lean generalizingMultipleOccurrences
-example: ∀ (p : ℕ), Nat.Prime p → Irrational (17 + √p) := by
-
+theorem irrat_sum_semigeneralized:
+  ∀ (p : ℕ), Nat.Prime p → Irrational (17 + √p) :=
+by
   /- Selectively generalize the occurrence of `17` under the square root,
     then add the generalization `irrat_sum.Gen` as a hypothesis. -/
   autogeneralize (17:ℕ) in irrat_sum at occurrences [1]
@@ -84,13 +87,12 @@ by
 Generalizing each of the four instances of $`3` to a different variable here would yield an incorrect statement. Rather, the cardinality of $`\alpha` is linked to the base of the exponent $`3^3`, and the cardinality of $`\beta` is linked to the power of the exponent $`3^3`. Generalizing all four instances of $`3` in this proof creates only two variables, one for each pair of linked occurrences.  The result is the generalization that if |α| = n and |β| = m, then the number of functions $`f : α → β` is $`m^n`.
 
 ```lean generalizingMultipleOccurrences
-example :
+theorem fun_set_generalized :
   ∀ (n m : ℕ)
   {α β : Type} [Fintype α] [Fintype β] [DecidableEq α],
   Fintype.card α = n → Fintype.card β = m →
   Fintype.card (α → β) = m ^ n:=
 by
-
   /- Generalize all occurrences of `3` in the proof,
      then add the generalization `fun_set.Gen` as a hypothesis. -/
   autogeneralize 3 in fun_set
