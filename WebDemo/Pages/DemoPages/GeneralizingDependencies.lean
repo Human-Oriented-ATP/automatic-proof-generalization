@@ -64,7 +64,8 @@ by
 
 ```
 
-Our program recognizes that the $`4` is a function of the $`3`, and so if we generalize $`4` to $`n`, we must generalize the $`3` to $`n-1`.  The outputted generalization is the theorem that there is no n-vertex graph with degree sequence $`(1,n-1,n-1,\dots,n-1)`.
+Our program recognizes that the $`4` is a function of the $`3`, and so if we generalize $`4` to $`n`, we must generalize the $`3` to $`n-1`.  The outputted generalization is the theorem that there is no n-vertex graph with degree sequence $`(1,n-1,n-1,\dots,n-1)`. Note that the program also isolates the condition that $`n > 2`, since the graph in the $`n=2` case has degree sequence $`(1,1)`, which does actually exist.
+
 ```lean generalizingDependentConstants
 theorem nonexistent_graph_generalized  :
   ∀ (n : ℕ), 2 < n → ∀ (G : SimpleGraph (Fin n)) [DecidableRel G.Adj],
@@ -80,5 +81,5 @@ by
   apply nonexistent_graph.Gen n (Nat.lt_sub_of_add_lt hn)
 ```
 
-Note that the program also isolates the condition that $`n > 2`, since when $`n = 2`, a graph with degree sequence $`(1,1)` exists.
+
 At a high level, we determine when one constant is a function of another by replacing each with metavariables, and if a typechecking conflict arises in the proof, using the antiunifier of the conflicting expressions to determine the function that relates the two constants. For details on the technical implementation of this algorithm, please see the paper "Automatically Generalizing Proofs and Statements."
