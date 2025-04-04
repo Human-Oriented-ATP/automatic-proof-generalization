@@ -275,14 +275,17 @@ section > pre {
 	margin: 10px;
 }
 
+code.hl.lean.block {
+	background-color: #f2efeb; 
+}
+
 /*******************************************
-Print inline-code on nice background
+Print inline-code with no background
 ********************************************/
 
 
 code {
 	font-family: monospace;
-	background-color: #f2efeb;
 	padding: 5px;
 	border-radius: 5px;
 }
