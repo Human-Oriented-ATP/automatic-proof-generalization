@@ -217,3 +217,45 @@ function activateMenuButton() {
    
     });
 }
+
+function updateNavbarSelection() {
+    // Get all h2 headers in the content
+    const headers = document.querySelectorAll('#content h2');
+    
+    // Get the current scroll position and viewport height
+    const scrollPosition = window.scrollY;
+    const viewportHeight = window.innerHeight;
+    
+    // Find the h2 that's at the top of the viewport
+    let currentHeader = null;
+    headers.forEach(header => {
+        const headerTop = header.offsetTop;
+        const headerBottom = headerTop + header.offsetHeight;
+        
+        // Check if header is at the top of the viewport
+        if (scrollPosition <= headerTop && headerTop < scrollPosition + viewportHeight) {
+            currentHeader = header;
+        }
+    });
+    
+    // Update navbar selection
+    if (currentHeader) {
+        // Remove all selected classes
+        document.querySelectorAll('.sub-menu-item').forEach(item => {
+            item.classList.remove('subselected');
+        });
+        
+        // Find and select the corresponding navbar item
+        const headerId = currentHeader.id;
+        const navItem = document.querySelector(`.sub-menu-item[href="#${headerId}"]`);
+        if (navItem) {
+            navItem.classList.add('subselected');
+        }
+    }
+}
+
+// Add scroll event listener to update navbar selection
+window.addEventListener('scroll', updateNavbarSelection);
+
+// Initial call to set selection on page load
+document.addEventListener('DOMContentLoaded', updateNavbarSelection);
