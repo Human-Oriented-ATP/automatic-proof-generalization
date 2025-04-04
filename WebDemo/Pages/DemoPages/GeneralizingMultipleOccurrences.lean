@@ -45,7 +45,7 @@ Happily, our algorithm yields the stronger generalization that $`n+\sqrt{p}` is 
 example: ∀ (p : ℕ), Nat.Prime p → ∀ (n : ℕ), Irrational (n + √p) := by
 
   /- Generalize the `17` in the proof,
-     and add the generalization `irrat_sum.Gen` as a hypothesis. -/
+     then add the generalization `irrat_sum.Gen` as a hypothesis. -/
   autogeneralize (17:ℕ) in irrat_sum
 
   /- Use the generalization to close the goal.-/
@@ -58,8 +58,8 @@ We can also choose to selectively generalize a particular occurrence of a consta
 ```lean generalizingMultipleOccurrences
 example: ∀ (p : ℕ), Nat.Prime p → Irrational (17 + √p) := by
 
-  /- Selectively generalize the occurrence of `17` under the square root.
-     and add the generalization `irrat_sum.Gen` as a hypothesis. -/
+  /- Selectively generalize the occurrence of `17` under the square root,
+    then add the generalization `irrat_sum.Gen` as a hypothesis. -/
   autogeneralize (17:ℕ) in irrat_sum at occurrences [1]
 
   /- Use the generalization to close the goal.-/
@@ -73,27 +73,30 @@ If different occurrences of a constant play the same role in the proof, the prog
 For example, consider the following theorem which proves that the number of functions between two sets of size `3` is `3 ^ 3`.
 
 ```lean generalizingMultipleOccurrences
-theorem fun_set {α β} [Fintype α] [Fintype β] [DecidableEq α]
-    (α_card : Fintype.card α = 3) (β_card : Fintype.card β = 3) : Fintype.card (α → β) = 3 ^ 3 := by
-
+theorem fun_set
+  {α β : Type} [inst : Fintype α] [inst_1 : Fintype β] [inst_2 : DecidableEq α]
+  (α_card : Fintype.card α = 3) (β_card : Fintype.card β = 3) :
+  Fintype.card (α → β) = 3 ^ 3 :=
+by
   rw [Fintype.card_pi, Finset.prod_const]; congr
 ```
 
 Generalizing each of the four instances of $`3` to a different variable here would yield an incorrect statement. Rather, the cardinality of $`\alpha` is linked to the base of the exponent $`3^3`, and the cardinality of $`\beta` is linked to the power of the exponent $`3^3`. Generalizing all four instances of $`3` in this proof creates only two variables, one for each pair of linked occurrences.  The result is the generalization that if |α| = n and |β| = m, then the number of functions $`f : α → β` is $`m^n`.
 
 ```lean generalizingMultipleOccurrences
-example {α β : Type} [Fintype α] [Fintype β] [DecidableEq α] :
-  ∀ (n m : ℕ), Fintype.card α = n → Fintype.card β = m → Fintype.card (α → β) = m ^ n :=
+example :
+  ∀ (n m : ℕ)
+  {α β : Type} [inst : Fintype α] [inst_1 : Fintype β] [inst_2 : DecidableEq α],
+  Fintype.card α = n → Fintype.card β = m →
+  Fintype.card (α → β) = m ^ n:=
 by
-  intro n m
 
-  let fun_set : Fintype.card α = 3 → Fintype.card β = 3 → Fintype.card (α → β) = 3 ^ 3 := by {intros α_card  β_card; rw [Fintype.card_pi, Finset.prod_const]; congr}
-
-  /- Generalize all occurrences of `3` in the proof.
-     and add the generalization `fun_set.Gen` as a hypothesis. -/
+  /- Generalize all occurrences of `3` in the proof,
+     then add the generalization `fun_set.Gen` as a hypothesis. -/
   autogeneralize 3 in fun_set
 
-  exact fun_set.Gen n m
+  /- Use the generalization to close the goal.-/
+  assumption
 ```
 
 For details on the technical implementation of this algorithm, please see the paper "Automatically Generalizing Proofs and Statements."
