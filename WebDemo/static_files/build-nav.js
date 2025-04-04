@@ -43,20 +43,19 @@ function addNavBarOpener() {
                <div id="notscrollable">
                   <div class="title">
                      <a href="/#">
-                     Automatic generalization<br/>
-                     of theorems and proofs<br/>
+                     Automatically Generalizing Proofs<br/>
                      in Lean 4
                      </a>
                   </div>
                    <div class="author">
-                     by <a href="http://anshula.com" target="_blank">Anshula</a> & <a href="http://github.com/0art0" target="_blank">Anand</a> 
+                     by <a href="http://anshula.com" target="_blank">Anshula</a> & <a href="http://github.com/0art0" target="_blank">Anand</a> & <a href="https://www.dpmms.cam.ac.uk/person/wtg10" target="_blank">Tim</a>
                   </div>
                </div>
 
                <div id="scrollable">
                   <div>
                      <div class="chapter" id="chapnav">
-                        <span href="#" class="chaptitle">Examples</span>
+                        <span href="#" class="chaptitle">Live Demos</span>
                      </div>
                   </div>
                </div>
