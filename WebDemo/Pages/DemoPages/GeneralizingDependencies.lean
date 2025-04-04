@@ -11,7 +11,7 @@ open Verso Genre Blog
 ```leanInit generalizingDependentConstants
 ```
 
-Sometimes when mathematicians say that they wish to generalize a constant $`c`, they really need to generalize not just occurrences of $`c`, but also occurrences of other constants in the proof that _depend_ on $`c`.
+Sometimes when mathematicians generalize a constant $`c`, they generalize not just occurrences of $`c`, but also occurrences of other constants in the proof that _depend_ on $`c`.
 
 # An Example from Set Theory
 

@@ -6,9 +6,9 @@ open Verso Genre Blog
 
 #doc (Page) "Introducing Proof Generalization" =>
 
-We present an algorithm that takes as its input a theorem, a proof of the theorem, and some aspect of the theorem that can potentially be generalized. **By examining the facts utilized in the proof, this program outputs a correct generalization of the theorem and a corresponding proof.** This Lean tactic builds on [previous work](https://cedric.cnam.fr/~pons/PAPERS/types00.pdf) done by Olivier Pons in the Rocq theorem prover.
+We present an algorithm that takes as its input a theorem, a proof of the theorem, and some aspect of the theorem that can potentially be generalized. **By examining the facts utilized in the proof, this program outputs a correct generalization of the theorem and a corresponding proof.**
 
-These demos accompany our paper submitted to ITP 2025: "Automatically Generalizing Proofs and Statements" by Anshula Gandhi, Anand Rao Tadipatri, and Timothy Gowers.
+These demos accompany our paper submitted to ITP 2025: "Automatically Generalizing Proofs and Statements" by Anshula Gandhi, Anand Rao Tadipatri, and Timothy Gowers.  This Lean tactic builds on [previous work](https://cedric.cnam.fr/~pons/PAPERS/types00.pdf) done by Olivier Pons in the Rocq theorem prover.
 
 # Generalizing the Irrationality of √17
 
