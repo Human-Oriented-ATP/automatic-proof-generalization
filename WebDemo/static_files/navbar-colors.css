@@ -8,7 +8,7 @@
 color: #8E7280; /* Mid- Purple */
 }
 
-/* ----------- HOVER ----------- */
+/* ----------- CHANGE COLOR ON HOVER/SELECTION ----------- */
 
 
 #navbar .chapter a:hover .subchaptitle, 
@@ -18,14 +18,27 @@ color: #8E7280; /* Mid- Purple */
 
 #navbar a:hover .author,
  #navbar .title a:hover,
- #navbar .chapter .chaptitle:hover,
-  {
+ #navbar .chapter .chaptitle:hover {
     color: #A78E9A; /* Light Purple */
 }
 
 a.sub-menu-item.subselected, a.sub-menu-item:hover{
+  background-color: #5d384b !important; /* Darker Purple on hover / select */
   font-weight:bold
 }
+
+/* ----------- ARROWS ON SELECTION ----------- */
+
+#navbar .chapter .subchaptitle::before {
+    content: "▶"; /* ᐳ see https://symbl.cc/en/collections/arrow-symbols/ */
+    margin-right: 5px;
+}
+
+#navbar .chapter a.selected .subchaptitle::before {
+    content: "▼"; /* ᐯ ▼ */
+    margin-right: 5px;
+}
+
 
 /* ----------- FADING GRADIENT ----------- */
 
@@ -34,7 +47,7 @@ a.sub-menu-item.subselected, a.sub-menu-item:hover{
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 70px; /* Set the width of the gradient */
+  width: 50px; /* Set the width of the gradient */
   height: 100%;
 /*  background-image: linear-gradient(to left,var(--tw-gradient-stops));*/
   background: linear-gradient(to right, transparent, #1F1319); /* Adjust gradient colors as needed */
