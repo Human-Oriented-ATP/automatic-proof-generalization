@@ -74,7 +74,7 @@ For example, consider the following theorem which proves that the number of func
 
 ```lean generalizingMultipleOccurrences
 theorem fun_set
-  {α β : Type} [inst : Fintype α] [inst_1 : Fintype β] [inst_2 : DecidableEq α]
+  {α β : Type} [Fintype α] [Fintype β] [DecidableEq α]
   (α_card : Fintype.card α = 3) (β_card : Fintype.card β = 3) :
   Fintype.card (α → β) = 3 ^ 3 :=
 by
@@ -86,7 +86,7 @@ Generalizing each of the four instances of $`3` to a different variable here wou
 ```lean generalizingMultipleOccurrences
 example :
   ∀ (n m : ℕ)
-  {α β : Type} [inst : Fintype α] [inst_1 : Fintype β] [inst_2 : DecidableEq α],
+  {α β : Type} [Fintype α] [Fintype β] [DecidableEq α],
   Fintype.card α = n → Fintype.card β = m →
   Fintype.card (α → β) = m ^ n:=
 by
