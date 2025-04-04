@@ -7,7 +7,7 @@ set_option pp.showLetValues false
 
 open Verso Genre Blog
 
-#doc (Page) "Generalizing Repeated Constants" =>
+#doc (Page) "Handling Repeated Constants" =>
 
 ```leanInit generalizingMultipleOccurrences
 ```
