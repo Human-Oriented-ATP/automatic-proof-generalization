@@ -106,8 +106,7 @@ example :
   /- Find the proof-based generalization, and add it as a theorem in the context. -/
   autogeneralize (4:ℕ) in nonexistent_graph
 
-  apply nonexistent_graph.Gen;
-  exact Nat.lt_sub_of_add_lt hn
+  apply nonexistent_graph.Gen n (Nat.lt_sub_of_add_lt hn)
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 A demonstration of the _occurrences_ flag in the generalization tactic.

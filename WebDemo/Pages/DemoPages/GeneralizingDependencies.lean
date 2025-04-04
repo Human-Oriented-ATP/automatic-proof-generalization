@@ -52,7 +52,15 @@ Consider the following theorem, proving that there is no 4-vertex graph with deg
 ```lean generalizingDependentConstants
 theorem nonexistent_graph (G : SimpleGraph (Fin 4)) [DecidableRel G.Adj] :
   ¬(∃ (v : Fin 4), G.degree v = 1 ∧ ∀ w ≠ v, G.degree w = 3) :=
-by { rintro ⟨v, v_deg, w_deg⟩; have hw_card : (Set.toFinset {w : Fin 4 | w ≠ v}).card = 3 := by {rw [Set.toFinset_card]; rw [Set.card_ne_eq]; rewrite [Fintype.card_fin]; rfl}; have neq_imp_adj : {w | w ≠ v} ⊆ {w | G.Adj v w} := by {rw [Set.setOf_subset_setOf]; intro w wneqv; apply max_deg_imp_adj_all; rewrite [Fintype.card_fin]; exact (w_deg w wneqv); exact wneqv.symm}; have v_deg_geq : 3 ≤ G.degree v := by {rw [← SimpleGraph.card_neighborFinset_eq_degree]; rw [← hw_card]; apply Finset.card_le_card; unfold SimpleGraph.neighborFinset; unfold SimpleGraph.neighborSet; rw [@Set.toFinset_subset_toFinset]; exact neq_imp_adj}; rw [v_deg] at v_deg_geq; exact Nat.not_lt.mpr v_deg_geq one_lt_three }
+by
+  /- We first show that any vertex with degree 3 is adjacent to all other vertices. -/
+  rintro ⟨v, v_deg, w_deg⟩; have hw_card : (Set.toFinset {w : Fin 4 | w ≠ v}).card = 3 := by {rw [Set.toFinset_card]; rw [Set.card_ne_eq]; rewrite [Fintype.card_fin]; rfl}; have neq_imp_adj : {w | w ≠ v} ⊆ {w | G.Adj v w} := by {rw [Set.setOf_subset_setOf]; intro w wneqv; apply max_deg_imp_adj_all; rewrite [Fintype.card_fin]; exact (w_deg w wneqv); exact wneqv.symm};
+
+  /- Therefore, the vertex with degree 1 must be adjacent to at least 3 other vertices.-/
+  have v_deg_geq : 3 ≤ G.degree v := by {rw [← SimpleGraph.card_neighborFinset_eq_degree]; rw [← hw_card]; apply Finset.card_le_card; unfold SimpleGraph.neighborFinset; unfold SimpleGraph.neighborSet; rw [@Set.toFinset_subset_toFinset]; exact neq_imp_adj}; rw [v_deg] at v_deg_geq;
+
+  /- But, we know the vertex with degree 1 can be adjacent to at most 1 other vertex. Contradiction.-/
+  exact Nat.not_lt.mpr v_deg_geq one_lt_three
 
 ```
 
@@ -60,9 +68,8 @@ Our program recognizes that the $`4` is a function of the $`3`, and so if we gen
 ```lean generalizingDependentConstants
 theorem nonexistent_graph_generalized  :
   ∀ (n : ℕ), 2 < n → ∀ (G : SimpleGraph (Fin n)) [DecidableRel G.Adj],
-  (∃ v, G.degree v = 1 ∧ ∀ (w : Fin n), w ≠ v → G.degree w = n - 1) → False
-:= by
-
+  (∃ v, G.degree v = 1 ∧ ∀ (w : Fin n), w ≠ v → G.degree w = n - 1) → False :=
+by
   intro n hn
 
   /- Generalize the `4` in the proof to `n`,
@@ -70,8 +77,7 @@ theorem nonexistent_graph_generalized  :
   autogeneralize (4:ℕ) in nonexistent_graph
 
   /- Use the generalization to close the goal. -/
-  apply nonexistent_graph.Gen;
-  exact Nat.lt_sub_of_add_lt hn
+  apply nonexistent_graph.Gen n (Nat.lt_sub_of_add_lt hn)
 ```
 
 Note that the program also isolates the condition that $`n > 2`, since when $`n = 2`, a graph with degree sequence $`(1,1)` exists.
