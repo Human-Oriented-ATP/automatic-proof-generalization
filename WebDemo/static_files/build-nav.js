@@ -224,7 +224,6 @@ function updateNavbarSelection() {
     
     // Get the current scroll position and viewport height
     const scrollPosition = window.scrollY;
-    const viewportHeight = window.innerHeight;
     
     // Find the h2 that's at the top of the viewport
     let currentHeader = null;
