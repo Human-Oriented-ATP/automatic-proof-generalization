@@ -101,4 +101,4 @@ by
   assumption
 ```
 
-For details on the technical implementation of this algorithm, please see the paper "Automatically Generalizing Proofs and Statements."
+At a high level, we determine whether two occurrences of a constant play the same role in a proof by checking if the two metavariables they have been replaced with unify after consolidating the proof (for instance, by running typechecking to match up inferred statements in the proof with the expected ones).  For details on the technical implementation of this algorithm, please see the paper "Automatically Generalizing Proofs and Statements."
