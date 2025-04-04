@@ -43,10 +43,11 @@ def theme : Theme := { Theme.default with
 -- with CSS and images
 -- def demoSite : Site := site Walkthrough.Blog / static "static" ← "Demo/static_files"  -- copy from static `Demo/static_files' to '_out/walkthroughsite/static'
 
-/-- with links -/
+/-- The following text strings are what determines the URL of each of the pages -/
 def demoSite : Site := site WebDemo.Pages.DemoPages.Introduction /
   static "static" ← "WebDemo/static_files"
-  "Introduction" WebDemo.Pages.DemoPages.Introduction
-  "Generalizing multiple occurrences" WebDemo.Pages.DemoPages.GeneralizingMultipleOccurrences
+  "intro" WebDemo.Pages.DemoPages.Introduction
+  "handling-repeated-constants" WebDemo.Pages.DemoPages.GeneralizingMultipleOccurrences
+  "handling-dependent-constants" WebDemo.Pages.DemoPages.GeneralizingDependencies
 
 def main := blogMain theme demoSite
