@@ -38,7 +38,7 @@ by
   have p_dvd_gcd : 17 ∣ Nat.gcd a b := Iff.mpr Nat.dvd_gcd_iff ⟨a_div, b_div⟩; clear a_div b_div; rw [copr] at p_dvd_gcd; apply Nat.Prime.not_dvd_one prime_seventeen p_dvd_gcd
 ```
 
-We would not want the generalization to place the primality assumption on both occurences on $`17` in the statement, yielding the overly-specific generalization that $`p+\sqrt{p}` is irrational for any prime $`p`.
+We would not want the generalization to place the primality assumption on both occurences of $`17`, yielding the overly-specific generalization that $`p+\sqrt{p}` is irrational for any prime $`p`.
 
 Happily, our algorithm yields the stronger generalization that $`n+\sqrt{p}` is irrational for any natural number $`n` and prime $`p`.
 
