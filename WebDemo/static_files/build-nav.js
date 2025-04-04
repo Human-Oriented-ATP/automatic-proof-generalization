@@ -230,21 +230,20 @@ function updateNavbarSelection() {
     let currentHeader = null;
     headers.forEach(header => {
         const headerTop = header.offsetTop;
-        const headerBottom = headerTop + header.offsetHeight;
         
-        // Check if header is at the top of the viewport
-        if (scrollPosition <= headerTop && headerTop < scrollPosition + viewportHeight) {
+        // Check if header is at the top of the viewport or above
+        if (headerTop < scrollPosition) {
             currentHeader = header;
         }
     });
     
-    // Update navbar selection
+    // Remove all selected classes first
+    document.querySelectorAll('.sub-menu-item').forEach(item => {
+        item.classList.remove('subselected');
+    });
+    
+    // Update navbar selection only if we found a header
     if (currentHeader) {
-        // Remove all selected classes
-        document.querySelectorAll('.sub-menu-item').forEach(item => {
-            item.classList.remove('subselected');
-        });
-        
         // Find and select the corresponding navbar item
         const headerId = currentHeader.id;
         const navItem = document.querySelector(`.sub-menu-item[href="#${headerId}"]`);
