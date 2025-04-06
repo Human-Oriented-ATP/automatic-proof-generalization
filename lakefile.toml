@@ -8,6 +8,7 @@ name = "AutomaticProofGeneralization"
 [[lean_lib]]
 name = "WebDemo"
 leanOptions = { pp.showLetValues = false }
+moreServerOptions = { pp.showLetValues = false }
 
 [[require]]
 name = "mathlib"
