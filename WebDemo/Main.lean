@@ -49,5 +49,6 @@ def demoSite : Site := site WebDemo.Pages.DemoPages.Introduction /
   "intro" WebDemo.Pages.DemoPages.Introduction
   "handling-repeated-constants" WebDemo.Pages.DemoPages.GeneralizingMultipleOccurrences
   "handling-dependent-constants" WebDemo.Pages.DemoPages.GeneralizingDependencies
+  "generalizing-higher-order-constants" WebDemo.Pages.DemoPages.GeneralizingHigherOrderConstants
 
 def main := blogMain theme demoSite

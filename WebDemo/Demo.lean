@@ -5,3 +5,4 @@ import WebDemo.Pages.Demo
 import WebDemo.Pages.DemoPages.Introduction
 import WebDemo.Pages.DemoPages.GeneralizingMultipleOccurrences
 import WebDemo.Pages.DemoPages.GeneralizingDependencies
+import WebDemo.Pages.DemoPages.GeneralizingHigherOrderConstants
