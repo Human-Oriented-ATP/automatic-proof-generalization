@@ -20,7 +20,8 @@ def theme : Theme := { Theme.default with
           <link rel="stylesheet" href="/static/navbar.css"/>
           <link rel="stylesheet" href="/static/navbar-colors.css"/>
           <script crossorigin="anonymous" src="https://code.jquery.com/jquery-2.2.4.js"></script>
-          <script src="/static/build-nav.js"></script>
+          <script src="/static/js/build-nav.js"></script>
+          <script src="/static/js/redirect.js"></script>
         </head>
         <body>
           <header>
