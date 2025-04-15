@@ -13,6 +13,7 @@ open Classical
 
 ```lean generalizingHigherOrderConstants show:=false
 set_option pp.showLetValues false
+set_option linter.unusedVariables false
 ```
 
 Since both our algorithm and [its predecessor](https://cedric.cnam.fr/~pons/PAPERS/types00.pdf) assume type-theoretic foundations, generalizing constants like $`\mathbb{ℤ}` (integers) or $`+` (addition) works just as well as generalizing numerical constants.
