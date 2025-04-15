@@ -6,15 +6,22 @@ open Verso Genre Blog
 
 #doc (Page) "Introducing Proof Generalization" =>
 
-We present an algorithm that takes as its input a theorem, a proof of the theorem, and some aspect of the theorem that can potentially be generalized. **By examining the facts utilized in the proof, this program outputs a correct generalization of the theorem and a corresponding proof.**
+We present an algorithm that takes as its input a theorem, a proof of the theorem, and some aspect of the theorem that can potentially be generalized. **By examining the facts utilized in the proof, this program outputs a correct generalization of the theorem and a corresponding proof.**  This Lean tactic builds on [previous work](https://cedric.cnam.fr/~pons/PAPERS/types00.pdf) done by Olivier Pons in the Rocq theorem prover.
 
-These demos accompany our paper submitted to ITP 2025: "Automatically Generalizing Proofs and Statements" by Anshula Gandhi, Anand Rao Tadipatri, and Timothy Gowers.  This Lean tactic builds on [previous work](https://cedric.cnam.fr/~pons/PAPERS/types00.pdf) done by Olivier Pons in the Rocq theorem prover.
+These demos accompany our paper submitted to ITP 2025: "Automatically Generalizing Proofs and Statements" by Anshula Gandhi, Anand Rao Tadipatri, and Timothy Gowers.
 
 # Generalizing the Irrationality of √17
 
-Consider the following theorem and proof that √17 is irrational.
+Consider the following theorem and proof.
+
+$$`\sqrt{17} \textrm{ is irrational.}`
 
 ```leanInit introduction
+set_option pp.showLetValues false
+```
+
+```lean introduction show:=false
+set_option pp.showLetValues false
 ```
 
 ```lean introduction
@@ -40,7 +47,9 @@ by
   have p_dvd_gcd : 17 ∣ Nat.gcd a b := Iff.mpr Nat.dvd_gcd_iff ⟨a_div, b_div⟩; clear a_div b_div; rw [copr] at p_dvd_gcd; apply Nat.Prime.not_dvd_one prime_seventeen p_dvd_gcd
 ```
 
-If our algorithm is presented with the above theorem and proof, formalized in Lean, and asked to generalize the number 17 by replacing it with an unknown natural number $`n`, it will determine that the only property it used of the number 17 was that it was prime, so its output will be the theorem that if $`n` is prime, then $`\sqrt n` is irrational, together with a correct proof of that theorem.
+If our algorithm is presented with the above theorem and proof, formalized in Lean, and asked to generalize the number 17 by replacing it with an unknown natural number $`n`, it will determine that the only property it used of the number 17 was that it was prime.  So its output will be following theorem and its proof:
+
+$$`\textrm{If } p \textrm{ is prime, } \sqrt{p} \textrm{ is irrational.}`
 
 ```lean introduction
 theorem irrat_sqrt_generalized :

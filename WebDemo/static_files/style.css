@@ -347,3 +347,21 @@ code {
     color: black;
 }
 
+
+/*******************************************
+Style math (inline and display mode)
+********************************************/
+
+code.math.inline, code.math.display {
+    color: #0A0A0A;
+}
+
+p:has(> code.math.display) {
+	margin-top: -20px;
+	margin-bottom: -10px;
+}
+
+code.hl.lean.block {
+	margin-top:10px;
+	margin-bottom: 10px;
+}
