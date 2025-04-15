@@ -23,7 +23,7 @@ theorem Int.emod_natAbs_lt_of_nonzero (a : ℤ) {b : ℤ} (hbAbs : b.natAbs ≠ 
   exact emod_nonneg a hb
   exact emod_lt_of_pos a negb_pos
 
-/-- Bézout's identity states that for any two integers a and b, there exist integers x and y such that their greatest common divisor g can be expressed as a linear combination ax + by = g -/
+/-- Bézout's identity states that for any two integers x and y ≠ 0, there exist integers h and k such that their greatest common divisor g can be expressed as a linear combination hx + ky = g. -/
 theorem bezout_identity : ∀ (x y : ℤ), y ≠ 0 → ∃ (h k : ℤ), isGCD (h * x + k * y) x y := by
   intros x y y_neq_0
 
