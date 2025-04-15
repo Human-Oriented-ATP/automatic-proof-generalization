@@ -19,7 +19,9 @@ Often, a proof will contain the same constant multiple times.  When we generaliz
 
 So, in a proof where a constant appears multiple times, the algorithm can determine when to generalize each occurrence separately.
 
-Consider the following proof that $`17 + \sqrt{17}` is irrational.
+Consider the following proof.
+
+$$`17 + \sqrt{17} \textrm{ is irrational.}`
 
 ```lean generalizingMultipleOccurrences
 theorem irrat_sum:
@@ -40,7 +42,10 @@ by
 
 We would not want the generalization to place the primality assumption on both occurences of $`17`, yielding the overly-specific generalization that $`p+\sqrt{p}` is irrational for any prime $`p`.
 
-Happily, our algorithm yields the stronger generalization that $`n+\sqrt{p}` is irrational for any natural number $`n` and prime $`p`.
+Happily, our algorithm yields the stronger generalization:
+
+$$`\textrm{For any natural number }n \textrm{ and prime } p,\\
+n+\sqrt{p} \textrm{ is irrational.}`
 
 ```lean generalizingMultipleOccurrences
 theorem irrat_sum_generalized:
@@ -73,25 +78,30 @@ by
 
 If different occurrences of a constant play the same role in the proof, the program automatically detects this and generalizes them as the same constant.
 
-For example, consider the following theorem which proves that the number of functions between two sets of size `3` is `3 ^ 3`.
+For example, consider the following theorem which proves that the number of functions between two sets of size $`3` is $`3 ^ 3`.
+
+$$`\textrm{If } |A| = 3\ \textrm{ and } |B|=3 \textrm{, then } |f:A \to B| = 3^3.`
 
 ```lean generalizingMultipleOccurrences
 theorem fun_set
-  {α β : Type} [Fintype α] [Fintype β] [DecidableEq α]
-  (α_card : Fintype.card α = 3) (β_card : Fintype.card β = 3) :
-  Fintype.card (α → β) = 3 ^ 3 :=
+  {A B : Type} [Fintype A] [Fintype B] [DecidableEq A]
+  (A_card : Fintype.card A = 3) (B_card : Fintype.card B = 3) :
+  Fintype.card (A → B) = 3 ^ 3 :=
 by
   rw [Fintype.card_pi, Finset.prod_const]; congr
 ```
 
-Generalizing each of the four instances of $`3` to a different variable here would yield an incorrect statement. Rather, the cardinality of $`\alpha` is linked to the base of the exponent $`3^3`, and the cardinality of $`\beta` is linked to the power of the exponent $`3^3`. Generalizing all four instances of $`3` in this proof creates only two variables, one for each pair of linked occurrences.  The result is the generalization that if |α| = n and |β| = m, then the number of functions $`f : α → β` is $`m^n`.
+Generalizing each of the four instances of $`3` to a different variable here would yield an incorrect statement. Rather, the cardinality of $`A` is linked to the base of the exponent $`3^3`, and the cardinality of $`A` is linked to the power of the exponent $`3^3`. Generalizing all four instances of $`3` in this proof creates only two variables, one for each pair of linked occurrences.  The result is the generalization that if $`|A| = n` and $`|B| = m`, then the number of functions $`f : A → B` is $`m^n`.
+
+$$`\textrm{Let } n,m \in \mathbb{N}.\\
+\textrm{If } |A| = n\ \textrm{ and } |B|=m \textrm{, then } |f: A \to B| = m^n.`
 
 ```lean generalizingMultipleOccurrences
 theorem fun_set_generalized :
   ∀ (n m : ℕ)
-  {α β : Type} [Fintype α] [Fintype β] [DecidableEq α],
-  Fintype.card α = n → Fintype.card β = m →
-  Fintype.card (α → β) = m ^ n:=
+  {A B : Type} [Fintype A] [Fintype B] [DecidableEq A],
+  Fintype.card A = n → Fintype.card B = m →
+  Fintype.card (A → B) = m ^ n:=
 by
   /- Generalize all occurrences of `3` in the proof,
      then add the generalization `fun_set.Gen` as a hypothesis. -/
@@ -100,5 +110,4 @@ by
   /- Use the generalization to close the goal.-/
   assumption
 ```
-
-At a high level, we determine whether two occurrences of a constant play the same role in a proof by checking if the two metavariables they have been replaced with unify after consolidating the proof (for instance, by running typechecking to match up inferred statements in the proof with the expected ones).  For details on the technical implementation of this algorithm, please see the paper "Automatically Generalizing Proofs and Statements."
+For details on the technical implementation handling repeated constants, please see the paper "Automatically Generalizing Proofs and Statements."  At a high level, the program determines whether two occurrences of a constant play the same role in a proof by replacing both with metavariables, then checking if the two metavariables unify after typechecking the proof (which tries to unify metavariables so that inferred statements in the proof match up with the expected ones).
