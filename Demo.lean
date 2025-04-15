@@ -96,7 +96,7 @@ to the proof that no n-vertex graph has degree sequence (1, n-1, n-1, ..., n-1) 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 example :
   ∀ (n : ℕ), 2 < n → ∀ (G : SimpleGraph (Fin n)) [DecidableRel G.Adj],
-  (∃ v, G.degree v = 1 ∧ ∀ (w : Fin n), w ≠ v → G.degree w = n - 1) → False
+  ¬(∃ v, G.degree v = 1 ∧ ∀ (w : Fin n), w ≠ v → G.degree w = n - 1)
 := by
   intro n hn
 

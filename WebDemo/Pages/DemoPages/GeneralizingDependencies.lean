@@ -15,12 +15,14 @@ Sometimes when mathematicians generalize a constant $`c`, they generalize not ju
 
 # An Example from Set Theory
 
-For example, consider the following theorem, which bounds the size of the union of two sets.  It says that if $`|A|=2` and $`|B|=2`, then $`|A ∪ B| ≤ 4`.
+For example, consider the following theorem, which bounds the size of the union of two sets.
+
+$$`\textrm{If } |A| = 2\ \textrm{ and } |B|=2 \textrm{, then } |A \cup B| \leq 4.`
 
 ```lean generalizingDependentConstants
 theorem union_of_finsets
-  (α : Type) [Fintype α] [DecidableEq α]
-  (A B : Finset α) (hA : A.card = 2) (hB : B.card = 2) : (A ∪ B).card ≤ 4 :=
+  (α : Type) [Fintype α] [DecidableEq α] (A B : Finset α)
+  (hA : A.card = 2) (hB : B.card = 2) : (A ∪ B).card ≤ 4 :=
 by
   /- Prove it using the fact that |A ∪ B| + |A ∩ B| = |A| + |B|.  -/
   apply hA ▸ hB ▸ Finset.card_union_add_card_inter A B ▸ Nat.le_add_right _ _
@@ -29,6 +31,10 @@ by
 If we wish to generalize the constant $`2`, it is not enough just to generalize the instances of $`2` itself, since we must also recognise that the constant $`4` depends on the two $`2`s in an important way. Thus, any algorithm that generalizes the $`2`s in the proof will need to generalize the $`4` as well.
 
 The algorithm we present recognizes from a proof of the theorem that the two $`2`s are "independent" and that the $`4` depends on both of them, yielding the following natural generalization.
+
+$$`\textrm{Let } n,m \in \mathbb{N}.\\
+\textrm{ If } |A|=n\  \textrm{ and } |B|=m \textrm{, then } |A \cup B| \leq n+m.`
+
 
 ```lean generalizingDependentConstants
 theorem union_of_finsets_generalized :
@@ -48,7 +54,11 @@ by
 
 We can also use this program on more complicated mathematical objects.
 
-Consider the following theorem, proving that there is no 4-vertex graph with degree sequence $`(1,3,3,3)`.
+Consider the following theorem.
+
+$$`\textrm{There is no } 4\textrm{-vertex graph}\\
+\textrm{with degree sequence } (1,3,3,3).`
+
 ```lean generalizingDependentConstants
 theorem nonexistent_graph (G : SimpleGraph (Fin 4)) [DecidableRel G.Adj] :
   ¬(∃ (v : Fin 4), G.degree v = 1 ∧ ∀ w ≠ v, G.degree w = 3) :=
@@ -64,12 +74,16 @@ by
 
 ```
 
-Our program recognizes that the $`4` is a function of the $`3`, and so if we generalize $`4` to $`n`, we must generalize the $`3` to $`n-1`.  The outputted generalization is the theorem that there is no n-vertex graph with degree sequence $`(1,n-1,n-1,\dots,n-1)`. Note that the program also isolates the condition that $`n > 2`, since the graph in the $`n=2` case has degree sequence $`(1,1)`, which does actually exist.
+Our program recognizes that the $`4` is a function of the $`3`, and so if we generalize $`4` to $`n`, we must generalize the $`3` to $`n-1`.  Note that the outputted generalization isolates the condition that $`n > 2`, since the graph in the $`n=2` case has degree sequence $`(1,1)`, which does actually exist.
+
+$$`\textrm{For } n > 2, \textrm{there is no } n\textrm{-vertex graph}\\
+\textrm{with degree sequence } (1,n-1, \dots, n-1).`
+
 
 ```lean generalizingDependentConstants
 theorem nonexistent_graph_generalized  :
   ∀ (n : ℕ), 2 < n → ∀ (G : SimpleGraph (Fin n)) [DecidableRel G.Adj],
-  (∃ v, G.degree v = 1 ∧ ∀ (w : Fin n), w ≠ v → G.degree w = n - 1) → False :=
+  ¬(∃ v, G.degree v = 1 ∧ ∀ (w : Fin n), w ≠ v → G.degree w = n - 1) :=
 by
   intro n hn
 
@@ -82,4 +96,4 @@ by
 ```
 
 
-At a high level, we determine when one constant is a function of another by replacing each with metavariables, and if a typechecking conflict arises in the proof, using the antiunifier of the conflicting expressions to determine the function that relates the two constants. For details on the technical implementation of this algorithm, please see the paper "Automatically Generalizing Proofs and Statements."
+For details on the technical implementation of this dependence-detection, please see the paper "Automatically Generalizing Proofs and Statements."  At a high level, the program determines when one constant is a function of another by replacing each constant with metavariables, and if a typechecking conflict arises in the proof, the program uses the antiunifier of the conflicting expressions to determine the function that relates the two constants.
