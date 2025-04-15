@@ -1,0 +1,454 @@
+{"99": "<code>Type</code>",
+ "98":
+ "<code>fun_set {A B : Type} [Fintype A] [Fintype B] [DecidableEq A] (A_card : Fintype.card A = 3)\n  (B_card : Fintype.card B = 3) : Fintype.card (A → B) = 3 ^ 3</code>",
+ "97": "<code>∀ (n : ℕ), Nat.Prime n → Irrational (↑17 + √↑n)</code>",
+ "96":
+ "<code>irrat_sum_semigeneralized (p : ℕ) : Nat.Prime p → Irrational (17 + √↑p)</code>",
+ "95": "<code>∀ (n : ℕ), Nat.Prime n → ∀ (m : ℕ), Irrational (↑m + √↑n)</code>",
+ "94":
+ "<code>irrat_sum_generalized (p : ℕ) : Nat.Prime p → ∀ (n : ℕ), Irrational (↑n + √↑p)</code>",
+ "93":
+ "<code>Irrational.nat_add {x : ℝ} (h : Irrational x) (m : ℕ) : Irrational (↑m + x)</code>",
+ "92":
+ "<code>HAdd.hAdd.{u, v, w} {α : Type u} {β : Type v} {γ : outParam (Type w)} [self : HAdd α β γ] : α → β → γ</code><span class=\"sep\"></span><code class=\"docstring\">`a + b` computes the sum of `a` and `b`.\nThe meaning of this notation is type-dependent. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `+` in identifiers is `add`.</code>",
+ "91": "<code>irrat_sum : Irrational (17 + √↑17)</code>",
+ "90": "<code>n ∣ a.gcd b</code>",
+ "9":
+ "<code>Nat.gcd (m n : ℕ) : ℕ</code><span class=\"sep\"></span><code class=\"docstring\">Computes the greatest common divisor of two natural numbers.\n\nThis reference implementation via the Euclidean algorithm\nis overridden in both the kernel and the compiler to efficiently\nevaluate using the \"bignum\" representation (see `Nat`).\nThe definition provided here is the logical model\n(and it is soundness-critical that they coincide).\n\nThe GCD of two natural numbers is the largest natural number\nthat divides both arguments.\nIn particular, the GCD of a number and `0` is the number itself:\n```\nexample : Nat.gcd 10 15 = 5 := rfl\nexample : Nat.gcd 0 5 = 5 := rfl\nexample : Nat.gcd 7 0 = 7 := rfl\n```\n</code>",
+ "89": "<code>n ∣ b ∨ n ∣ b</code>",
+ "88":
+ "<code>Eq.symm.{u} {α : Sort u} {a b : α} (h : a = b) : b = a</code><span class=\"sep\"></span><code class=\"docstring\">Equality is symmetric: if `a = b` then `b = a`.\n\nBecause this is in the `Eq` namespace, if you have a variable `h : a = b`,\n`h.symm` can be used as shorthand for `Eq.symm h` as a proof of `b = a`.\n\nFor more information: [Equality](https://lean-lang.org/theorem_proving_in_lean4/quantifiers_and_equality.html#equality)\n</code>",
+ "87": "<code>eq_false {p : Prop} (h : ¬p) : p = False</code>",
+ "86":
+ "<code>Eq.trans.{u} {α : Sort u} {a b c : α} (h₁ : a = b) (h₂ : b = c) : a = c</code><span class=\"sep\"></span><code class=\"docstring\">Equality is transitive: if `a = b` and `b = c` then `a = c`.\n\nBecause this is in the `Eq` namespace, if you have variables or expressions\n`h₁ : a = b` and `h₂ : b = c`, you can use `h₁.trans h₂ : a = c` as shorthand\nfor `Eq.trans h₁ h₂`.\n\nFor more information: [Equality](https://lean-lang.org/theorem_proving_in_lean4/quantifiers_and_equality.html#equality)\n</code>",
+ "85": "<code>n ∣ b * b</code>",
+ "84": "<code>n ∣ b</code>",
+ "83": "<code>a = n * k</code>",
+ "82": "<code>∃ k, a = n * k</code>",
+ "81":
+ "<code>Eq.refl.{u_1} {α : Sort u_1} (a : α) : a = a</code><span class=\"sep\"></span><code class=\"docstring\">`Eq.refl a : a = a` is reflexivity, the unique constructor of the\nequality type. See also `rfl`, which is usually used instead. </code>",
+ "80": "<code>⋯ = ⋯</code>",
+ "8": "<code>ℕ</code>",
+ "79":
+ "<code>propext {a b : Prop} : (a ↔ b) → a = b</code><span class=\"sep\"></span><code class=\"docstring\">The axiom of **propositional extensionality**. It asserts that if propositions\n`a` and `b` are logically equivalent (i.e. we can prove `a` from `b` and vice versa),\nthen `a` and `b` are *equal*, meaning that we can replace `a` with `b` in all\ncontexts.\n\nFor simple expressions like `a ∧ c ∨ d → e` we can prove that because all the logical\nconnectives respect logical equivalence, we can replace `a` with `b` in this expression\nwithout using `propext`. However, for higher order expressions like `P a` where\n`P : Prop → Prop` is unknown, or indeed for `a = b` itself, we cannot replace `a` with `b`\nwithout an axiom which says exactly this.\n\nThis is a relatively uncontroversial axiom, which is intuitionistically valid.\nIt does however block computation when using `#reduce` to reduce proofs directly\n(which is not recommended), meaning that canonicity,\nthe property that all closed terms of type `Nat` normalize to numerals,\nfails to hold when this (or any) axiom is used:\n```\nset_option pp.proofs true\n\ndef foo : Nat := by\n  have : (True → True) ↔ True := ⟨λ _ =&gt; trivial, λ _ _ =&gt; trivial⟩\n  have := propext this ▸ (2 : Nat)\n  exact this\n\n#reduce foo\n-- propext { mp := fun x x =&gt; True.intro, mpr := fun x =&gt; True.intro } ▸ 2\n\n#eval foo -- 2\n```\n`#eval` can evaluate it to a numeral because the compiler erases casts and\ndoes not evaluate proofs, so `propext`, whose return type is a proposition,\ncan never block it.\n</code>",
+ "78": "<code>Prop</code>",
+ "77":
+ "<code>Eq.mp.{u} {α β : Sort u} (h : α = β) (a : α) : β</code><span class=\"sep\"></span><code class=\"docstring\">If `h : α = β` is a proof of type equality, then `h.mp : α → β` is the induced\n\"cast\" operation, mapping elements of `α` to elements of `β`.\n\nYou can prove theorems about the resulting element by induction on `h`, since\n`rfl.mp` is definitionally the identity function.\n</code>",
+ "76": "<code>n ∣ a ∨ n ∣ a</code>",
+ "75":
+ "<code>Or.casesOn {a b : Prop} {motive : a ∨ b → Prop} (t : a ∨ b) (inl : ∀ (h : a), motive ⋯) (inr : ∀ (h : b), motive ⋯) :\n  motive t</code>",
+ "74":
+ "<code>congrArg.{u, v} {α : Sort u} {β : Sort v} {a₁ a₂ : α} (f : α → β) (h : a₁ = a₂) : f a₁ = f a₂</code><span class=\"sep\"></span><code class=\"docstring\">Congruence in the function argument: if `a₁ = a₂` then `f a₁ = f a₂` for\nany (nondependent) function `f`. This is more powerful than it might look at first, because\nyou can also use a lambda expression for `f` to prove that\n`&lt;something containing a₁&gt; = &lt;something containing a₂&gt;`. This function is used\ninternally by tactics like `congr` and `simp` to apply equalities inside\nsubterms.\n\nFor more information: [Equality](https://lean-lang.org/theorem_proving_in_lean4/quantifiers_and_equality.html#equality)\n</code>",
+ "73":
+ "<code>id.{u} {α : Sort u} (a : α) : α</code><span class=\"sep\"></span><code class=\"docstring\">The identity function. `id` takes an implicit argument `α : Sort u`\n(a type in any universe), and an argument `a : α`, and returns `a`.\n\nAlthough this may look like a useless function, one application of the identity\nfunction is to explicitly put a type on an expression. If `e` has type `T`,\nand `T'` is definitionally equal to `T`, then `@id T' e` typechecks, and Lean\nknows that this expression has type `T'` rather than `T`. This can make a\ndifference for typeclass inference, since `T` and `T'` may have different\ntypeclass instances on them. `show T' from e` is sugar for an `@id T' e`\nexpression.\n</code>",
+ "72":
+ "<code>Eq.mpr.{u} {α β : Sort u} (h : α = β) (b : β) : α</code><span class=\"sep\"></span><code class=\"docstring\">If `h : α = β` is a proof of type equality, then `h.mpr : β → α` is the induced\n\"cast\" operation in the reverse direction, mapping elements of `β` to elements of `α`.\n\nYou can prove theorems about the resulting element by induction on `h`, since\n`rfl.mpr` is definitionally the identity function.\n</code>",
+ "71": "<code>n ∣ a * a</code>",
+ "70": "<code>n ∣ a</code>",
+ "7":
+ "<code>Not (a : Prop) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`Not p`, or `¬p`, is the negation of `p`. It is defined to be `p → False`,\nso if your goal is `¬p` you can use `intro h` to turn the goal into\n`h : p ⊢ False`, and if you have `hn : ¬p` and `h : p` then `hn h : False`\nand `(hn h).elim` will prove anything.\nFor more information: [Propositional Logic](https://lean-lang.org/theorem_proving_in_lean4/propositions_and_proofs.html#propositional-logic)\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `¬` in identifiers is `not`.</code>",
+ "69": "<code>a * a = n * b * b</code>",
+ "68":
+ "<code>And.casesOn.{u} {a b : Prop} {motive : a ∧ b → Sort u} (t : a ∧ b) (intro : (left : a) → (right : b) → motive ⋯) :\n  motive t</code>",
+ "67": "<code>a.gcd b = 1 ∧ a * a = n * b * b</code>",
+ "66": "<code>∃ b, a.gcd b = 1 ∧ a * a = n * b * b</code>",
+ "65":
+ "<code>Exists.casesOn.{u} {α : Sort u} {p : α → Prop} {motive : Exists p → Prop} (t : Exists p)\n  (intro : ∀ (w : α) (h : p w), motive ⋯) : motive t</code>",
+ "64": "<code>∃ a b, a.gcd b = 1 ∧ a * a = n * b * b</code>",
+ "63": "<code>Nat.Prime n</code>",
+ "62": "<code>∀ (n : ℕ), Nat.Prime n → Irrational √↑n</code>",
+ "61":
+ "<code class=\"docstring\">A tactic that generalizes all instances of `pattern` in a local hypotheses `h` by requiring `pattern` to have only the properties used in the proof of `h`.</code>",
+ "60":
+ "<code>Nat.Prime (p : ℕ) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`Nat.Prime p` means that `p` is a prime number, that is, a natural number\nat least 2 whose only divisors are `p` and `1`.\nThe theorem `Nat.prime_def` witnesses this description of a prime number. </code>",
+ "6":
+ "<code>irrat_def (n : ℕ) : (¬∃ a b, a.gcd b = 1 ∧ a * a = n * b * b) → Irrational √↑n</code>",
+ "59":
+ "<code>irrat_sqrt_generalized (p : ℕ) : Nat.Prime p → Irrational √↑p</code>",
+ "58": "<code>Nat.Prime.not_dvd_one {p : ℕ} (pp : Nat.Prime p) : ¬p ∣ 1</code>",
+ "57": "<code>17 ∣ 1</code>",
+ "56":
+ "<code class=\"docstring\">`clear x...` removes the given hypotheses, or fails if there are remaining\nreferences to a hypothesis.\n</code>",
+ "55":
+ "<code>And.intro {a b : Prop} (left : a) (right : b) : a ∧ b</code><span class=\"sep\"></span><code class=\"docstring\">`And.intro : a → b → a ∧ b` is the constructor for the And operation. </code>",
+ "54":
+ "<code>Nat.dvd_gcd_iff {k : ℕ} {m n : ℕ} : k ∣ m.gcd n ↔ k ∣ m ∧ k ∣ n</code>",
+ "53":
+ "<code>Iff.mpr {a b : Prop} (self : a ↔ b) : b → a</code><span class=\"sep\"></span><code class=\"docstring\">Modus ponens for if and only if, reversed. If `a ↔ b` and `b`, then `a`. </code>",
+ "52": "<code>17 ∣ a.gcd b</code>",
+ "51": "<code>17 ∣ b ∨ 17 ∣ b</code>",
+ "50": "<code>Nat.dvd_mul_left (a b : ℕ) : a ∣ b * a</code>",
+ "5":
+ "<code class=\"docstring\">`apply e` tries to match the current goal against the conclusion of `e`'s type.\nIf it succeeds, then the tactic returns as many subgoals as the number of premises that\nhave not been fixed by type inference or type class resolution.\nNon-dependent premises are added before dependent ones.\n\nThe `apply` tactic uses higher-order pattern matching, type class resolution,\nand first-order unification with dependent types.\n</code>",
+ "49": "<code>17 ∣ b * b</code>",
+ "48": "<code>17 ∣ b</code>",
+ "47": "<code>b * b = k * k * 17</code>",
+ "46": "<code>or_false (p : Prop) : (p ∨ False) = p</code>",
+ "45": "<code>Nat.Prime.ne_zero {n : ℕ} (h : Nat.Prime n) : n ≠ 0</code>",
+ "44":
+ "<code class=\"docstring\">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or\nnon-dependent hypotheses. It has many variants:\n- `simp` simplifies the main goal target using lemmas tagged with the attribute `[simp]`.\n- `simp [h₁, h₂, ..., hₙ]` simplifies the main goal target using the lemmas tagged\n  with the attribute `[simp]` and the given `hᵢ`'s, where the `hᵢ`'s are expressions.-\n- If an `hᵢ` is a defined constant `f`, then `f` is unfolded. If `f` has equational lemmas associated\n  with it (and is not a projection or a `reducible` definition), these are used to rewrite with `f`.\n- `simp [*]` simplifies the main goal target using the lemmas tagged with the\n  attribute `[simp]` and all hypotheses.\n- `simp only [h₁, h₂, ..., hₙ]` is like `simp [h₁, h₂, ..., hₙ]` but does not use `[simp]` lemmas.\n- `simp [-id₁, ..., -idₙ]` simplifies the main goal target using the lemmas tagged\n  with the attribute `[simp]`, but removes the ones named `idᵢ`.\n- `simp at h₁ h₂ ... hₙ` simplifies the hypotheses `h₁ : T₁` ... `hₙ : Tₙ`. If\n  the target or another hypothesis depends on `hᵢ`, a new simplified hypothesis\n  `hᵢ` is introduced, but the old one remains in the local context.\n- `simp at *` simplifies all the hypotheses and the target.\n- `simp [*] at *` simplifies target and all (propositional) hypotheses using the\n  other hypotheses.\n</code>",
+ "43": "<code>b * b = k * k * 17 ∨ 17 = 0</code>",
+ "42":
+ "<code>mul_eq_mul_left_iff.{u_1} {M₀ : Type u_1} [CancelMonoidWithZero M₀] {a b c : M₀} : a * b = a * c ↔ b = c ∨ a = 0</code>",
+ "41":
+ "<code>mul_comm.{u_1} {G : Type u_1} [CommMagma G] (a b : G) : a * b = b * a</code>",
+ "40": "<code>17 * b * b = 17 * k * (17 * k)</code>",
+ "4":
+ "<code>Real.sqrt (x : ℝ) : ℝ</code><span class=\"sep\"></span><code class=\"docstring\">The square root of a real number. This returns 0 for negative inputs.\n\nThis has notation `√x`. Note that `√x⁻¹` is parsed as `√(x⁻¹)`. </code>",
+ "39":
+ "<code class=\"docstring\">* `symm` applies to a goal whose target has the form `t ~ u` where `~` is a symmetric relation,\n  that is, a relation which has a symmetry lemma tagged with the attribute [symm].\n  It replaces the target with `u ~ t`.\n* `symm at h` will rewrite a hypothesis `h : t ~ u` to `h : u ~ t`.\n</code>",
+ "38": "<code>17 * k * (17 * k) = 17 * b * b</code>",
+ "37": "<code>a = 17 * k</code>",
+ "36":
+ "<code class=\"docstring\">The `obtain` tactic is a combination of `have` and `rcases`. See `rcases` for\na description of supported patterns.\n\n```lean\nobtain ⟨patt⟩ : type := proof\n```\nis equivalent to\n```lean\nhave h : type := proof\nrcases h with ⟨patt⟩\n```\n\nIf `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.\n\nIf `type` is omitted, `:= proof` is required.\n</code>",
+ "35":
+ "<code>dvd_iff_exists_eq_mul_right.{u_1} {α : Type u_1} [Semigroup α] {a b : α} : a ∣ b ↔ ∃ c, b = a * c</code><span class=\"sep\"></span><code class=\"docstring\">**Alias** of `dvd_def`.</code>",
+ "34":
+ "<code>Iff.mp {a b : Prop} (self : a ↔ b) : a → b</code><span class=\"sep\"></span><code class=\"docstring\">Modus ponens for if and only if. If `a ↔ b` and `a`, then `b`. </code>",
+ "33": "<code>∃ k, a = 17 * k</code>",
+ "32":
+ "<code class=\"docstring\">`assumption` tries to solve the main goal using a hypothesis of compatible type, or else fails.\nNote also the `‹t›` term notation, which is a shorthand for `show t by assumption`.\n</code>",
+ "312": "<code>∃ k, d = h * x + k * y</code>",
+ "311": "<code>d ∣ y</code>",
+ "310": "<code>y ∈ A</code>",
+ "31":
+ "<code class=\"docstring\">Assuming `x` is a variable in the local context with an inductive type,\n`cases x` splits the main goal, producing one goal for each constructor of the\ninductive type, in which the target is replaced by a general instance of that constructor.\nIf the type of an element in the local context depends on `x`,\nthat element is reverted and reintroduced afterward,\nso that the case split affects that hypothesis as well.\n`cases` detects unreachable cases and closes them automatically.\n\nFor example, given `n : Nat` and a goal with a hypothesis `h : P n` and target `Q n`,\n`cases n` produces one goal with hypothesis `h : P 0` and target `Q 0`,\nand one goal with hypothesis `h : P (Nat.succ a)` and target `Q (Nat.succ a)`.\nHere the name `a` is chosen automatically and is not accessible.\nYou can use `with` to provide the variables names for each constructor.\n- `cases e`, where `e` is an expression instead of a variable, generalizes `e` in the goal,\n  and then cases on the resulting variable.\n- Given `as : List α`, `cases as with | nil =&gt; tac₁ | cons a as' =&gt; tac₂`,\n  uses tactic `tac₁` for the `nil` case, and `tac₂` for the `cons` case,\n  and `a` and `as'` are used as names for the new variables introduced.\n- `cases h : e`, where `e` is a variable or an expression,\n  performs cases on `e` as above, but also adds a hypothesis `h : e = ...` to each hypothesis,\n  where `...` is the constructor instance for that particular case.\n</code>",
+ "309": "<code>d ∣ x</code>",
+ "308": "<code>eq_self.{u_1} {α : Sort u_1} (a : α) : (a = a) = True</code>",
+ "307": "<code>of_eq_true {p : Prop} (h : p = True) : p</code>",
+ "306": "<code>x ∈ A</code>",
+ "305": "<code>gen_natAbs r &lt; gen_natAbs d</code>",
+ "304": "<code>r = -q * d + a</code>",
+ "303": "<code>a = q * d + r</code>",
+ "302": "<code>∀ a ∈ A, d ∣ a</code>",
+ "301": "<code>¬gen_natAbs z = 0</code>",
+ "300":
+ "<code>Nat.find_min' {p : ℕ → Prop} [DecidablePred p] (H : ∃ n, p n) {m : ℕ} (h : p m) : Nat.find H ≤ m</code>",
+ "30":
+ "<code>Or (a b : Prop) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`Or a b`, or `a ∨ b`, is the disjunction of propositions. There are two\nconstructors for `Or`, called `Or.inl : a → a ∨ b` and `Or.inr : b → a ∨ b`,\nand you can use `match` or `cases` to destruct an `Or` assumption into the\ntwo cases.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `∨` in identifiers is `or`.\n\n * The recommended spelling of `\\/` in identifiers is `or` (prefer `∨` over `\\/`).</code>",
+ "3":
+ "<code class=\"docstring\">`by tac` constructs a term of the expected type by running the tactic(s) `tac`. </code>",
+ "299": "<code>Nat.find hB_nonempty ≤ gen_natAbs z</code>",
+ "298":
+ "<code>Or.inr {a b : Prop} (h : b) : a ∨ b</code><span class=\"sep\"></span><code class=\"docstring\">`Or.inr` is \"right injection\" into an `Or`. If `h : b` then `Or.inr h : a ∨ b`. </code>",
+ "297": "<code>gen_natAbs z = 0</code>",
+ "296":
+ "<code>Or.inl {a b : Prop} (h : a) : a ∨ b</code><span class=\"sep\"></span><code class=\"docstring\">`Or.inl` is \"left injection\" into an `Or`. If `h : a` then `Or.inl h : a ∨ b`. </code>",
+ "295": "<code>z ∈ A</code>",
+ "294": "<code>∀ z ∈ A, gen_natAbs z = 0 ∨ gen_natAbs d ≤ gen_natAbs z</code>",
+ "293": "<code>gen_natAbs d ≠ 0</code>",
+ "292": "<code>Bmin ≠ 0</code>",
+ "291":
+ "<code>And.right {a b : Prop} (self : a ∧ b) : b</code><span class=\"sep\"></span><code class=\"docstring\">Extract the right conjunct from a conjunction. `h : a ∧ b` then\n`h.right`, also notated as `h.2`, is a proof of `b`. </code>",
+ "290": "<code>gen_natAbs d = Bmin</code>",
+ "29": "<code>17 ∣ a ∨ 17 ∣ a</code>",
+ "289": "<code>d ∈ A</code>",
+ "288": "<code>d ∈ A ∧ gen_natAbs d = Bmin</code>",
+ "287":
+ "<code>And.left {a b : Prop} (self : a ∧ b) : a</code><span class=\"sep\"></span><code class=\"docstring\">Extract the left conjunct from a conjunction. `h : a ∧ b` then\n`h.left`, also notated as `h.1`, is a proof of `a`. </code>",
+ "286":
+ "<code>Nat.find_spec {p : ℕ → Prop} [DecidablePred p] (H : ∃ n, p n) : p (Nat.find H)</code>",
+ "285": "<code>(∃ d ∈ A, gen_natAbs d = Bmin) ∧ Bmin ≠ 0</code>",
+ "284":
+ "<code>Nat.find {p : ℕ → Prop} [DecidablePred p] (H : ∃ n, p n) : ℕ</code><span class=\"sep\"></span><code class=\"docstring\">If `p` is a (decidable) predicate on `ℕ` and `hp : ∃ (n : ℕ), p n` is a proof that\nthere exists some natural number satisfying `p`, then `Nat.find hp` is the\nsmallest natural number satisfying `p`. Note that `Nat.find` is protected,\nmeaning that you can't just write `find`, even if the `Nat` namespace is open.\n\nThe API for `Nat.find` is:\n\n* `Nat.find_spec` is the proof that `Nat.find hp` satisfies `p`.\n* `Nat.find_min` is the proof that if `m &lt; Nat.find hp` then `m` does not satisfy `p`.\n* `Nat.find_min'` is the proof that if `m` does satisfy `p` then `Nat.find hp ≤ m`.\n</code>",
+ "283": "<code>Ne.eq_def.{u} {α : Sort u} (a b : α) : (a ≠ b) = ¬a = b</code>",
+ "282":
+ "<code>Set.mem_image_of_mem.{u, v} {α : Type u} {β : Type v} (f : α → β) {x : α} {a : Set α} (h : x ∈ a) : f x ∈ f '' a</code>",
+ "281":
+ "<code>Set.mem_diff_singleton.{u} {α : Type u} {x y : α} {s : Set α} : x ∈ s \\ {y} ↔ x ∈ s ∧ x ≠ y</code>",
+ "280": "<code>∃ b, b ∈ B</code>",
+ "28":
+ "<code class=\"docstring\">Location specifications are used by many tactics that can operate on either the\nhypotheses or the goal. It can have one of the forms:\n* 'empty' is not actually present in this syntax, but most tactics use\n  `(location)?` matchers. It means to target the goal only.\n* `at h₁ ... hₙ`: target the hypotheses `h₁`, ..., `hₙ`\n* `at h₁ h₂ ⊢`: target the hypotheses `h₁` and `h₂`, and the goal\n* `at *`: target all hypotheses and the goal\n</code>",
+ "279":
+ "<code>Singleton.singleton.{u, v} {α : outParam (Type u)} {β : Type v} [self : Singleton α β] : α → β</code><span class=\"sep\"></span><code class=\"docstring\">`singleton x` is a collection with the single element `x` (notation: `{x}`). \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `{x}` in identifiers is `singleton`.</code>",
+ "278":
+ "<code>SDiff.sdiff.{u} {α : Type u} [self : SDiff α] : α → α → α</code><span class=\"sep\"></span><code class=\"docstring\">`a \\ b` is the set difference of `a` and `b`,\nconsisting of all elements in `a` that are not in `b`.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `\\` in identifiers is `sdiff`.</code>",
+ "277":
+ "<code>Set.image.{u, v} {α : Type u} {β : Type v} (f : α → β) (s : Set α) : Set β</code><span class=\"sep\"></span><code class=\"docstring\">The image of `s : Set α` by `f : α → β`, written `f '' s`, is the set of `b : β` such that\n`f a = b` for some `a ∈ s`. </code>",
+ "276": "<code>Set ℕ</code>",
+ "275": "<code>∀ a ∈ A, ∀ (z : R), z * a ∈ A</code>",
+ "274":
+ "<code>Exists.intro.{u} {α : Sort u} {p : α → Prop} (w : α) (h : p w) : Exists p</code><span class=\"sep\"></span><code class=\"docstring\">Existential introduction. If `a : α` and `h : p a`,\nthen `⟨a, h⟩` is a proof that `∃ x : α, p x`. </code>",
+ "273": "<code>b = h' * x + k' * y</code>",
+ "272": "<code>∃ k, b = h' * x + k * y</code>",
+ "271": "<code>b ∈ A</code>",
+ "270": "<code>a = h * x + k * y</code>",
+ "27": "<code>prime_seventeen : Nat.Prime 17</code>",
+ "269": "<code>∃ k, a = h * x✝ + k * y</code>",
+ "268": "<code>∃ k, a = h * x + k * y</code>",
+ "267":
+ "<code>Membership.mem.{u, v} {α : outParam (Type u)} {γ : Type v} [self : Membership α γ] : γ → α → Prop</code><span class=\"sep\"></span><code class=\"docstring\">The membership relation `a ∈ s : Prop` where `a : α`, `s : γ`. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `∈` in identifiers is `mem`.</code>",
+ "266": "<code>a ∈ A</code>",
+ "265": "<code>∀ a ∈ A, ∀ b ∈ A, a + b ∈ A</code>",
+ "264": "<code>Set R</code>",
+ "263": "<code>y ≠ 0</code>",
+ "262": "<code>∀ (a b c : R), a * (b * c) = b * (a * c)</code>",
+ "261": "<code>∀ (a b : R), (a ∣ b) = ∃ c, b = a * c</code>",
+ "260": "<code>∀ (a b : R), b ∣ a * b</code>",
+ "26":
+ "<code>Nat.Prime.dvd_mul {p m n : ℕ} (pp : Nat.Prime p) : p ∣ m * n ↔ p ∣ m ∨ p ∣ n</code>",
+ "259": "<code>∀ (a : R), a + 0 = a</code>",
+ "258":
+ "<code>∀ (a : R) {b : R}, gen_natAbs b ≠ 0 → gen_natAbs (a % b) &lt; gen_natAbs b</code>",
+ "257": "<code>∀ (a b : R), -(a * b) = -a * b</code>",
+ "256": "<code>∀ (a b : R), a / b * b + a % b = a</code>",
+ "255": "<code>∀ {a : R}, gen_natAbs a = 0 ↔ a = 0</code>",
+ "254": "<code>∀ (a : R), 0 + a = a</code>",
+ "253": "<code>∀ (a : R), 1 * a = a</code>",
+ "252": "<code>∀ (a : R), 0 * a = 0</code>",
+ "251": "<code>∀ (a b c : R), a * b * c = a * (b * c)</code>",
+ "250": "<code>∀ (a b c : R), a * (b + c) = a * b + a * c</code>",
+ "25": "<code>Nat.dvd_mul_right (a b : ℕ) : a ∣ a * b</code>",
+ "249": "<code>∀ (a b c : R), (a + b) * c = a * c + b * c</code>",
+ "248": "<code>∀ (a b c : R), a + (b + c) = b + (a + c)</code>",
+ "247": "<code>∀ (a b c : R), a + b + c = a + (b + c)</code>",
+ "246":
+ "<code>∀ (R : Type) (gen_instOfNat : {n : ℕ} → OfNat R n) (gen_instAddGroup : AddGroup R) (gen_instMul : Mul R)\n  (gen_instDvd : Dvd R),\n  (∀ (a b c : R), a + b + c = a + (b + c)) →\n    (∀ (a b c : R), a + (b + c) = b + (a + c)) →\n      (∀ (a b c : R), (a + b) * c = a * c + b * c) →\n        (∀ (a b c : R), a * (b + c) = a * b + a * c) →\n          (∀ (a b c : R), a * b * c = a * (b * c)) →\n            ∀ (gen_natAbs : R → ℕ),\n              (∀ (a : R), 0 * a = 0) →\n                (∀ (a : R), 1 * a = a) →\n                  (∀ (a : R), 0 + a = a) →\n                    (∀ {a : R}, gen_natAbs a = 0 ↔ a = 0) →\n                      ∀ (gen_instDiv : Div R) (gen_instMod : Mod R),\n                        (∀ (a b : R), a / b * b + a % b = a) →\n                          ∀ (gen_instNegInt : Neg R),\n                            (∀ (a b : R), -(a * b) = -a * b) →\n                              (∀ (a : R) {b : R}, gen_natAbs b ≠ 0 → gen_natAbs (a % b) &lt; gen_natAbs b) →\n                                (∀ (a : R), a + 0 = a) →\n                                  (∀ (a b : R), b ∣ a * b) →\n                                    (∀ (a b : R), (a ∣ b) = ∃ c, b = a * c) →\n                                      (∀ (a b c : R), a * (b * c) = b * (a * c)) →\n                                        ∀ (x y : R), y ≠ 0 → ∃ h k, isGCD (h * x + k * y) x y</code>",
+ "245": "<code>Neg R</code>",
+ "244":
+ "<code>HMod.hMod.{u, v, w} {α : Type u} {β : Type v} {γ : outParam (Type w)} [self : HMod α β γ] : α → β → γ</code><span class=\"sep\"></span><code class=\"docstring\">`a % b` computes the remainder upon dividing `a` by `b`.\nThe meaning of this notation is type-dependent.\n* For `Nat` and `Int` it satisfies `a % b + b * (a / b) = a`,\n  and `a % 0` is defined to be `a`. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `%` in identifiers is `mod`.</code>",
+ "243":
+ "<code>HDiv.hDiv.{u, v, w} {α : Type u} {β : Type v} {γ : outParam (Type w)} [self : HDiv α β γ] : α → β → γ</code><span class=\"sep\"></span><code class=\"docstring\">`a / b` computes the result of dividing `a` by `b`.\nThe meaning of this notation is type-dependent.\n* For most types like `Nat`, `Int`, `Rat`, `Real`, `a / 0` is defined to be `0`.\n* For `Nat`, `a / b` rounds downwards.\n* For `Int`, `a / b` rounds downwards if `b` is positive or upwards if `b` is negative.\n  It is implemented as `Int.ediv`, the unique function satisfying\n  `a % b + b * (a / b) = a` and `0 ≤ a % b &lt; natAbs b` for `b ≠ 0`.\n  Other rounding conventions are available using the functions\n  `Int.fdiv` (floor rounding) and `Int.tdiv` (truncation rounding).\n* For `Float`, `a / 0` follows the IEEE 754 semantics for division,\n  usually resulting in `inf` or `nan`. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `/` in identifiers is `div`.</code>",
+ "242":
+ "<code>Mod.{u} (α : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">The homogeneous version of `HMod`: `a % b : α` where `a b : α`. </code>",
+ "241": "<code>Mod R</code>",
+ "240":
+ "<code>Div.{u} (α : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">The homogeneous version of `HDiv`: `a / b : α` where `a b : α`. </code>",
+ "24":
+ "<code class=\"docstring\">`exact e` closes the main goal if its target type matches that of `e`.\n</code>",
+ "239": "<code>Div R</code>",
+ "238":
+ "<code>Iff (a b : Prop) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">If and only if, or logical bi-implication. `a ↔ b` means that `a` implies `b` and vice versa.\nBy `propext`, this implies that `a` and `b` are equal and hence any expression involving `a`\nis equivalent to the corresponding expression with `b` instead.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `↔` in identifiers is `iff`.\n\n * The recommended spelling of `&lt;-&gt;` in identifiers is `iff` (prefer `↔` over `&lt;-&gt;`).</code>",
+ "237": "<code>R → ℕ</code>",
+ "236": "<code>R</code>",
+ "235":
+ "<code>Dvd.{u_1} (α : Type u_1) : Type u_1</code><span class=\"sep\"></span><code class=\"docstring\">Notation typeclass for the `∣` operation (typed as `\\|`), which represents divisibility. </code>",
+ "234": "<code>Dvd R</code>",
+ "233":
+ "<code>Mul.{u} (α : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">The homogeneous version of `HMul`: `a * b : α` where `a b : α`. </code>",
+ "232": "<code>Mul R</code>",
+ "231":
+ "<code>AddGroup.{u} (A : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">An `AddGroup` is an `AddMonoid` with a unary `-` satisfying `-a + a = 0`.\n\nThere is also a binary operation `-` such that `a - b = a + -b`,\nwith a default so that `a - b = a + -b` holds by definition.\n\nUse `AddGroup.ofLeftAxioms` or `AddGroup.ofRightAxioms` to define an\nadditive group structure on a type with the minimum proof obligations.\n</code>",
+ "230": "<code>AddGroup R</code>",
+ "23":
+ "<code>mul_assoc.{u_1} {G : Type u_1} [Semigroup G] (a b c : G) : a * b * c = a * (b * c)</code>",
+ "229":
+ "<code>OfNat.{u} (α : Type u) : ℕ → Type u</code><span class=\"sep\"></span><code class=\"docstring\">The class `OfNat α n` powers the numeric literal parser. If you write\n`37 : α`, Lean will attempt to synthesize `OfNat α 37`, and will generate\nthe term `(OfNat.ofNat 37 : α)`.\n\nThere is a bit of infinite regress here since the desugaring apparently\nstill contains a literal `37` in it. The type of expressions contains a\nprimitive constructor for \"raw natural number literals\", which you can directly\naccess using the macro `nat_lit 37`. Raw number literals are always of type `Nat`.\nSo it would be more correct to say that Lean looks for an instance of\n`OfNat α (nat_lit 37)`, and it generates the term `(OfNat.ofNat (nat_lit 37) : α)`.\n</code>",
+ "228": "<code>{n : ℕ} → OfNat R n</code>",
+ "227": "<code>isGCD.{u_1} {α : Type u_1} [Dvd α] (g a b : α) : Prop</code>",
+ "226":
+ "<code>bezout_identity (x y : ℤ) : y ≠ 0 → ∃ h k, isGCD (h * x + k * y) x y</code><span class=\"sep\"></span><code class=\"docstring\">Bézout's identity states that for any two integers x and y ≠ 0, there exist integers h and k such that their greatest common divisor g can be expressed as a linear combination hx + ky = g. </code>",
+ "225": "<code>∀ (a b c : G), f (f a b) c = f a (f b c)</code>",
+ "224": "<code>∀ (a : G), f (-a) a = e</code>",
+ "223": "<code>∀ (a : G), f e a = a</code>",
+ "222":
+ "<code>∀ (G : Type) (gen_instNegInt : Neg G) (e : G) (f : G → G → G),\n  (∀ (a : G), f e a = a) →\n    (∀ (a : G), f (-a) a = e) → (∀ (a b c : G), f (f a b) c = f a (f b c)) → ∀ (a b c : G), f a b = f a c → b = c</code>",
+ "221": "<code>∀ (a : ℤ), f (-a) a = e</code>",
+ "220": "<code>∀ (a : ℤ), f e a = a</code>",
+ "22":
+ "<code class=\"docstring\">`rw` is like `rewrite`, but also tries to close the goal by \"cheap\" (reducible) `rfl` afterwards.\n</code>",
+ "219":
+ "<code>∀ (e : ℤ) (f : ℤ → ℤ → ℤ),\n  (∀ (a : ℤ), f e a = a) →\n    (∀ (a : ℤ), f (-a) a = e) → (∀ (a b c : ℤ), f (f a b) c = f a (f b c)) → ∀ (a b c : ℤ), f a b = f a c → b = c</code>",
+ "218": "<code>?m.968474</code>",
+ "217": "<code>f (-a) (f a b) = f (-a) (f a c)</code>",
+ "216": "<code>f a b = f a c</code>",
+ "215": "<code>∀ (a b c : ℤ), f (f a b) c = f a (f b c)</code>",
+ "214": "<code>∀ (a : ℤ), f (-a) a = 0</code>",
+ "213": "<code>∀ (a : ℤ), f 0 a = a</code>",
+ "212": "<code>ℤ → ℤ → ℤ</code>",
+ "211":
+ "<code>∀ (f : ℤ → ℤ → ℤ),\n  (∀ (a : ℤ), f 0 a = a) →\n    (∀ (a : ℤ), f (-a) a = 0) → (∀ (a b c : ℤ), f (f a b) c = f a (f b c)) → ∀ (a b c : ℤ), f a b = f a c → b = c</code>",
+ "210":
+ "<code>Add.add.{u} {α : Type u} [self : Add α] : α → α → α</code><span class=\"sep\"></span><code class=\"docstring\">`a + b` computes the sum of `a` and `b`. See `HAdd`. </code>",
+ "21": "<code>17 ∣ a * a</code>",
+ "209":
+ "<code class=\"docstring\">A tactic that generalizes all instances of `pattern` in a local hypotheses `h` by requiring `pattern` to have only the properties used in the proof of `h`.\nBehaves as in (\"Generalization in Type Theory Based Proof Assistants\" by Olivier Pons, 2000) in that it doesn't generalize repeated constants in different ways\nBut with the additional capability of generalizing dependent constants </code>",
+ "208":
+ "<code>Neg.neg.{u} {α : Type u} [self : Neg α] : α → α</code><span class=\"sep\"></span><code class=\"docstring\">`-a` computes the negative or opposite of `a`.\nThe meaning of this notation is type-dependent. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `-` in identifiers is `neg` (when used as a unary operator).</code>",
+ "207": "<code>G → G → G</code>",
+ "206": "<code>G</code>",
+ "205":
+ "<code>Neg.{u} (α : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">The notation typeclass for negation.\nThis enables the notation `-a : α` where `a : α`.\n</code>",
+ "204": "<code>Neg G</code>",
+ "203": "<code>b = c</code>",
+ "202": "<code>Int.zero_add (a : ℤ) : 0 + a = a</code>",
+ "201": "<code>Int.add_left_neg (a : ℤ) : -a + a = 0</code>",
+ "200": "<code>Int.add_assoc (a b c : ℤ) : a + b + c = a + (b + c)</code>",
+ "20":
+ "<code>Dvd.dvd.{u_1} {α : Type u_1} [self : Dvd α] : α → α → Prop</code><span class=\"sep\"></span><code class=\"docstring\">Divisibility. `a ∣ b` (typed as `\\|`) means that there is some `c` such that `b = a * c`. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `∣` in identifiers is `dvd`.</code>",
+ "2": "<code>ℝ</code>",
+ "199":
+ "<code class=\"docstring\">`rwa` is short-hand for `rw; assumption`. </code>",
+ "198": "<code>-a + (a + b) = -a + (a + c)</code>",
+ "197":
+ "<code class=\"docstring\">Acts like `have`, but removes a hypothesis with the same name as\nthis one if possible. For example, if the state is:\n\n```lean\nf : α → β\nh : α\n⊢ goal\n```\n\nThen after `replace h := f h` the state will be:\n\n```lean\nf : α → β\nh : β\n⊢ goal\n```\n\nwhereas `have h := f h` would result in:\n\n```lean\nf : α → β\nh† : α\nh : β\n⊢ goal\n```\n\nThis can be used to simulate the `specialize` and `apply at` tactics of Coq.\n</code>",
+ "196":
+ "<code>Int : Type</code><span class=\"sep\"></span><code class=\"docstring\">The type of integers. It is defined as an inductive type based on the\nnatural number type `Nat` featuring two constructors: \"a natural\nnumber is an integer\", and \"the negation of a successor of a natural\nnumber is an integer\". The former represents integers between `0`\n(inclusive) and `∞`, and the latter integers between `-∞` and `-1`\n(inclusive).\n\nThis type is special-cased by the compiler. The runtime has a special\nrepresentation for `Int` which stores \"small\" signed numbers directly,\nand larger numbers use an arbitrary precision \"bignum\" library\n(usually [GMP](https://gmplib.org/)). A \"small number\" is an integer\nthat can be encoded with 63 bits (31 bits on 32-bits architectures).\n</code>",
+ "195": "<code>a + b = a + c</code>",
+ "194": "<code>ℤ</code>",
+ "193":
+ "<code>Int.left_cancellation (a b c : ℤ) (h : a + b = a + c) : b = c</code>",
+ "192":
+ "<code>Nat.lt_sub_of_add_lt {a b c : ℕ} (h : a + b &lt; c) : a &lt; c - b</code>",
+ "191": "<code>n - 1 ≤ G.degree v</code>",
+ "190": "<code>{w | w ≠ v}.toFinset.card = n - 1</code>",
+ "19": "<code>17 ∣ a</code>",
+ "189": "<code>∀ (w : Fin n), w ≠ v → G.degree w = n - 1</code>",
+ "188":
+ "<code>G.degree v = 1 ∧ ∀ (w : Fin n), w ≠ v → G.degree w = n - 1</code>",
+ "187":
+ "<code>∃ v, G.degree v = 1 ∧ ∀ (w : Fin n), w ≠ v → G.degree w = n - 1</code>",
+ "186": "<code>1 &lt; n - 1</code>",
+ "185":
+ "<code>∀ (n : ℕ),\n  1 &lt; n - 1 →\n    ∀ (G : SimpleGraph (Fin n)) [inst : DecidableRel G.Adj],\n      (∃ v, G.degree v = 1 ∧ ∀ (w : Fin n), w ≠ v → G.degree w = n - 1) → False</code>",
+ "184": "<code>2 &lt; n</code>",
+ "183":
+ "<code>LT.lt.{u} {α : Type u} [self : LT α] : α → α → Prop</code><span class=\"sep\"></span><code class=\"docstring\">The less-than relation: `x &lt; y` \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `&lt;` in identifiers is `lt`.</code>",
+ "182": "<code>Fin n</code>",
+ "181": "<code>SimpleGraph (Fin n)</code>",
+ "180":
+ "<code>nonexistent_graph_generalized (n : ℕ) :\n  2 &lt; n →\n    ∀ (G : SimpleGraph (Fin n)) [inst : DecidableRel G.Adj],\n      ¬∃ v, G.degree v = 1 ∧ ∀ (w : Fin n), w ≠ v → G.degree w = n - 1</code>",
+ "18":
+ "<code class=\"docstring\">The `have` tactic is for adding hypotheses to the local context of the main goal.\n* `have h : t := e` adds the hypothesis `h : t` if `e` is a term of type `t`.\n* `have h := e` uses the type of `e` for `t`.\n* `have : t := e` and `have := e` use `this` for the name of the hypothesis.\n* `have pat := e` for a pattern `pat` is equivalent to `match e with | pat =&gt; _`,\n  where `_` stands for the tactics that follow this one.\n  It is convenient for types that have only one applicable constructor.\n  For example, given `h : p ∧ q ∧ r`, `have ⟨h₁, h₂, h₃⟩ := h` produces the\n  hypotheses `h₁ : p`, `h₂ : q`, and `h₃ : r`.\n</code>",
+ "179": "<code>one_lt_three : 1 &lt; 3</code>",
+ "178": "<code>Nat.not_lt {a b : ℕ} : ¬a &lt; b ↔ b ≤ a</code>",
+ "177": "<code>3 ≤ 1</code>",
+ "176":
+ "<code>Set.toFinset_subset_toFinset.{u_1} {α : Type u_1} {s t : Set α} [Fintype ↑s] [Fintype ↑t] :\n  s.toFinset ⊆ t.toFinset ↔ s ⊆ t</code>",
+ "175":
+ "<code>SimpleGraph.neighborSet.{u} {V : Type u} (G : SimpleGraph V) (v : V) : Set V</code><span class=\"sep\"></span><code class=\"docstring\">`G.neighborSet v` is the set of vertices adjacent to `v` in `G`. </code>",
+ "174":
+ "<code class=\"docstring\">* `unfold id` unfolds all occurrences of definition `id` in the target.\n* `unfold id1 id2 ...` is equivalent to `unfold id1; unfold id2; ...`.\n* `unfold id at h` unfolds at the hypothesis `h`.\n\nDefinitions can be either global or local definitions.\n\nFor non-recursive global definitions, this tactic is identical to `delta`.\nFor recursive global definitions, it uses the \"unfolding lemma\" `id.eq_def`,\nwhich is generated for each recursive definition, to unfold according to the recursive definition given by the user.\nOnly one level of unfolding is performed, in contrast to `simp only [id]`, which unfolds definition `id` recursively.\n</code>",
+ "173":
+ "<code>Finset.card_le_card.{u_1} {α : Type u_1} {s t : Finset α} : s ⊆ t → s.card ≤ t.card</code>",
+ "172":
+ "<code>SimpleGraph.neighborFinset.{u_1} {V : Type u_1} (G : SimpleGraph V) (v : V) [Fintype ↑(G.neighborSet v)] : Finset V</code><span class=\"sep\"></span><code class=\"docstring\">`G.neighbors v` is the `Finset` version of `G.Adj v` in case `G` is\nlocally finite at `v`. </code>",
+ "171":
+ "<code>SimpleGraph.card_neighborFinset_eq_degree.{u_1} {V : Type u_1} (G : SimpleGraph V) (v : V)\n  [Fintype ↑(G.neighborSet v)] : (G.neighborFinset v).card = G.degree v</code>",
+ "170": "<code>3 ≤ G.degree v</code>",
+ "17":
+ "<code>False : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`False` is the empty proposition. Thus, it has no introduction rules.\nIt represents a contradiction. `False` elimination rule, `False.rec`,\nexpresses the fact that anything follows from a contradiction.\nThis rule is sometimes called ex falso (short for ex falso sequitur quodlibet),\nor the principle of explosion.\nFor more information: [Propositional Logic](https://lean-lang.org/theorem_proving_in_lean4/propositions_and_proofs.html#propositional-logic)\n</code>",
+ "169": "<code>Ne.symm.{u} {α : Sort u} {a b : α} (h : a ≠ b) : b ≠ a</code>",
+ "168":
+ "<code>max_deg_imp_adj_all {V : Type} [Fintype V] {v : V} {G : SimpleGraph V} [DecidableRel G.Adj]\n  [Fintype ↑(Gᶜ.neighborSet v)] : G.degree v = Fintype.card V - 1 → ∀ (w : V), w ≠ v → G.Adj w v</code>",
+ "167": "<code>w ≠ v</code>",
+ "166":
+ "<code class=\"docstring\">Introduces one or more hypotheses, optionally naming and/or pattern-matching them.\nFor each hypothesis to be introduced, the remaining main goal's target type must\nbe a `let` or function type.\n\n* `intro` by itself introduces one anonymous hypothesis, which can be accessed\n  by e.g. `assumption`.\n* `intro x y` introduces two hypotheses and names them. Individual hypotheses\n  can be anonymized via `_`, or matched against a pattern:\n  ```lean\n  -- ... ⊢ α × β → ...\n  intro (a, b)\n  -- ..., a : α, b : β ⊢ ...\n  ```\n* Alternatively, `intro` can be combined with pattern matching much like `fun`:\n  ```lean\n  intro\n  | n + 1, 0 =&gt; tac\n  | ...\n  ```\n</code>",
+ "165":
+ "<code>Set.setOf_subset_setOf.{u} {α : Type u} {p q : α → Prop} : {a | p a} ⊆ {a | q a} ↔ ∀ (a : α), p a → q a</code>",
+ "164":
+ "<code>HasSubset.Subset.{u} {α : Type u} [self : HasSubset α] : α → α → Prop</code><span class=\"sep\"></span><code class=\"docstring\">Subset relation: `a ⊆ b`  \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `⊆` in identifiers is `subset`.</code>",
+ "163": "<code>{w | w ≠ v} ⊆ {w | G.Adj v w}</code>",
+ "162":
+ "<code class=\"docstring\">This tactic applies to a goal whose target has the form `x ~ x`,\nwhere `~` is equality, heterogeneous equality or any relation that\nhas a reflexivity lemma tagged with the attribute @[refl].\n</code>",
+ "161": "<code>Fintype.card_fin (n : ℕ) : Fintype.card (Fin n) = n</code>",
+ "160":
+ "<code class=\"docstring\">`rewrite [e]` applies identity `e` as a rewrite rule to the target of the main goal.\nIf `e` is preceded by left arrow (`←` or `&lt;-`), the rewrite is applied in the reverse direction.\nIf `e` is a defined constant, then the equational theorems associated with `e` are used.\nThis provides a convenient way to unfold `e`.\n- `rewrite [e₁, ..., eₙ]` applies the given rules sequentially.\n- `rewrite [e] at l` rewrites `e` at location(s) `l`, where `l` is either `*` or a\n  list of hypotheses in the local context. In the latter case, a turnstile `⊢` or `|-`\n  can also be used, to signify the target of the goal.\n\nUsing `rw (occs := .pos L) [e]`,\nwhere `L : List Nat`, you can control which \"occurrences\" are rewritten.\n(This option applies to each rule, so usually this will only be used with a single rule.)\nOccurrences count from `1`.\nAt each allowed occurrence, arguments of the rewrite rule `e` may be instantiated,\nrestricting which later rewrites can be found.\n(Disallowed occurrences do not result in instantiation.)\n`(occs := .neg L)` allows skipping specified occurrences.\n</code>",
+ "16":
+ "<code>Nat : Type</code><span class=\"sep\"></span><code class=\"docstring\">The type of natural numbers, starting at zero. It is defined as an\ninductive type freely generated by \"zero is a natural number\" and\n\"the successor of a natural number is a natural number\".\n\nYou can prove a theorem `P n` about `n : Nat` by `induction n`, which will\nexpect a proof of the theorem for `P 0`, and a proof of `P (succ i)` assuming\na proof of `P i`. The same method also works to define functions by recursion\non natural numbers: induction and recursion are two expressions of the same\noperation from Lean's point of view.\n\n```\nopen Nat\nexample (n : Nat) : n &lt; succ n := by\n  induction n with\n  | zero =&gt;\n    show 0 &lt; 1\n    decide\n  | succ i ih =&gt; -- ih : i &lt; succ i\n    show succ i &lt; succ (succ i)\n    exact Nat.succ_lt_succ ih\n```\n\nThis type is special-cased by both the kernel and the compiler:\n* The type of expressions contains \"`Nat` literals\" as a primitive constructor,\n  and the kernel knows how to reduce zero/succ expressions to nat literals.\n* If implemented naively, this type would represent a numeral `n` in unary as a\n  linked list with `n` links, which is horribly inefficient. Instead, the\n  runtime itself has a special representation for `Nat` which stores numbers up\n  to 2^63 directly and larger numbers use an arbitrary precision \"bignum\"\n  library (usually [GMP](https://gmplib.org/)).\n</code>",
+ "159":
+ "<code>HSub.hSub.{u, v, w} {α : Type u} {β : Type v} {γ : outParam (Type w)} [self : HSub α β γ] : α → β → γ</code><span class=\"sep\"></span><code class=\"docstring\">`a - b` computes the difference of `a` and `b`.\nThe meaning of this notation is type-dependent.\n* For natural numbers, this operator saturates at 0: `a - b = 0` when `a ≤ b`. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `-` in identifiers is `sub` (when used as a binary operator).</code>",
+ "158":
+ "<code>Set.card_ne_eq.{u} {α : Type u} [Fintype α] (a : α) [Fintype ↑{x | x ≠ a}] :\n  Fintype.card ↑{x | x ≠ a} = Fintype.card α - 1</code>",
+ "157":
+ "<code>Set.toFinset_card.{u_4} {α : Type u_4} (s : Set α) [Fintype ↑s] : s.toFinset.card = Fintype.card ↑s</code>",
+ "156":
+ "<code>setOf.{u} {α : Type u} (p : α → Prop) : Set α</code><span class=\"sep\"></span><code class=\"docstring\">Turn a predicate `p : α → Prop` into a set, also written as `{x | p x}` </code>",
+ "155":
+ "<code>Set.toFinset.{u_1} {α : Type u_1} (s : Set α) [Fintype ↑s] : Finset α</code><span class=\"sep\"></span><code class=\"docstring\">Construct a finset enumerating a set `s`, given a `Fintype` instance. </code>",
+ "154": "<code>{w | w ≠ v}.toFinset.card = 3</code>",
+ "153": "<code>∀ (w : Fin 4), w ≠ v → G.degree w = 3</code>",
+ "152": "<code>G.degree v = 1</code>",
+ "151":
+ "<code>Ne.{u} {α : Sort u} (a b : α) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`a ≠ b`, or `Ne a b` is defined as `¬ (a = b)` or `a = b → False`,\nand asserts that `a` and `b` are not equal.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `≠` in identifiers is `ne`.</code>",
+ "150": "<code>DecidableRel G.Adj</code>",
+ "15": "<code>a * a = 17 * b * b</code>",
+ "149":
+ "<code>SimpleGraph.degree.{u_1} {V : Type u_1} (G : SimpleGraph V) (v : V) [Fintype ↑(G.neighborSet v)] : ℕ</code><span class=\"sep\"></span><code class=\"docstring\">`G.degree v` is the number of vertices adjacent to `v`. </code>",
+ "148": "<code>Fin 4</code>",
+ "147":
+ "<code>SimpleGraph.Adj.{u} {V : Type u} (self : SimpleGraph V) : V → V → Prop</code><span class=\"sep\"></span><code class=\"docstring\">The adjacency relation of a simple graph. </code>",
+ "146":
+ "<code>DecidableRel.{u, v} {α : Sort u} {β : Sort v} (r : α → β → Prop) : Sort (max (max 1 u) v)</code><span class=\"sep\"></span><code class=\"docstring\">A decidable relation. See `Decidable`. </code>",
+ "145":
+ "<code>Fin (n : ℕ) : Type</code><span class=\"sep\"></span><code class=\"docstring\">`Fin n` is a natural number `i` with the constraint that `0 ≤ i &lt; n`.\nIt is the \"canonical type with `n` elements\".\n</code>",
+ "144":
+ "<code>SimpleGraph.{u} (V : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">A simple graph is an irreflexive symmetric relation `Adj` on a vertex type `V`.\nThe relation describes which pairs of vertices are adjacent.\nThere is exactly one edge for every pair of adjacent vertices;\nsee `SimpleGraph.edgeSet` for the corresponding edge set.\n</code>",
+ "143": "<code>SimpleGraph (Fin 4)</code>",
+ "142":
+ "<code>nonexistent_graph (G : SimpleGraph (Fin 4)) [DecidableRel G.Adj] :\n  ¬∃ v, G.degree v = 1 ∧ ∀ (w : Fin 4), w ≠ v → G.degree w = 3</code>",
+ "141":
+ "<code>Inter.inter.{u} {α : Type u} [self : Inter α] : α → α → α</code><span class=\"sep\"></span><code class=\"docstring\">`a ∩ b` is the intersection of`a` and `b`. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `∩` in identifiers is `inter`.</code>",
+ "140": "<code>B.card = m</code>",
+ "14": "<code>a.gcd b = 1</code>",
+ "139": "<code>A.card = n</code>",
+ "138":
+ "<code>∀ (n m : ℕ) (α : Type) [inst : Fintype α] [inst : DecidableEq α] (A B : Finset α),\n  A.card = n → B.card = m → (A ∪ B).card ≤ n + m</code>",
+ "137":
+ "<code>union_of_finsets_generalized (n m : ℕ) (α : Type) [Fintype α] [DecidableEq α] (A B : Finset α) :\n  A.card = n → B.card = m → (A ∪ B).card ≤ n + m</code>",
+ "136": "<code>Nat.le_add_right (n k : ℕ) : n ≤ n + k</code>",
+ "135":
+ "<code>Finset.card_union_add_card_inter.{u_1} {α : Type u_1} [DecidableEq α] (s t : Finset α) :\n  (s ∪ t).card + (s ∩ t).card = s.card + t.card</code>",
+ "134":
+ "<code>LE.le.{u} {α : Type u} [self : LE α] : α → α → Prop</code><span class=\"sep\"></span><code class=\"docstring\">The less-equal relation: `x ≤ y` \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `≤` in identifiers is `le`.\n\n * The recommended spelling of `&lt;=` in identifiers is `le` (prefer `≤` over `&lt;=`).</code>",
+ "133":
+ "<code>Union.union.{u} {α : Type u} [self : Union α] : α → α → α</code><span class=\"sep\"></span><code class=\"docstring\">`a ∪ b` is the union of`a` and `b`. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `∪` in identifiers is `union`.</code>",
+ "132": "<code>DecidableEq α</code>",
+ "131": "<code>Fintype α</code>",
+ "130": "<code>B.card = 2</code>",
+ "13":
+ "<code class=\"docstring\">The `rintro` tactic is a combination of the `intros` tactic with `rcases` to\nallow for destructuring patterns while introducing variables. See `rcases` for\na description of supported patterns. For example, `rintro (a | ⟨b, c⟩) ⟨d, e⟩`\nwill introduce two variables, and then do case splits on both of them producing\ntwo subgoals, one with variables `a d e` and the other with `b c d e`.\n\n`rintro`, unlike `rcases`, also supports the form `(x y : ty)` for introducing\nand type-ascripting multiple variables at once, similar to binders.\n</code>",
+ "129": "<code>A.card = 2</code>",
+ "128":
+ "<code>Finset.{u_4} (α : Type u_4) : Type u_4</code><span class=\"sep\"></span><code class=\"docstring\">`Finset α` is the type of finite sets of elements of `α`. It is implemented\nas a multiset (a list up to permutation) which has no duplicate elements. </code>",
+ "127": "<code>Finset α</code>",
+ "126":
+ "<code>union_of_finsets (α : Type) [Fintype α] [DecidableEq α] (A B : Finset α) (hA : A.card = 2) (hB : B.card = 2) :\n  (A ∪ B).card ≤ 4</code>",
+ "125": "<code>a_2 = a_3</code>",
+ "124": "<code>β</code>",
+ "123": "<code>a = a_2</code>",
+ "122":
+ "<code>Eq.rec.{u, u_1} {α : Sort u_1} {a✝ : α} {motive : (a : α) → a✝ = a → Sort u} (refl : motive a✝ ⋯) {a✝¹ : α}\n  (t : a✝ = a✝¹) : motive a✝¹ t</code>",
+ "121": "<code>a = a_1</code>",
+ "120": "<code>α</code>",
+ "12":
+ "<code>HMul.hMul.{u, v, w} {α : Type u} {β : Type v} {γ : outParam (Type w)} [self : HMul α β γ] : α → β → γ</code><span class=\"sep\"></span><code class=\"docstring\">`a * b` computes the product of `a` and `b`.\nThe meaning of this notation is type-dependent. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `*` in identifiers is `mul`.</code>",
+ "119":
+ "<code>HPow.{u, v, w} (α : Type u) (β : Type v) (γ : outParam (Type w)) : Type (max (max u v) w)</code><span class=\"sep\"></span><code class=\"docstring\">The notation typeclass for heterogeneous exponentiation.\nThis enables the notation `a ^ b : γ` where `a : α`, `b : β`.\n</code>",
+ "118": "<code>Fintype.card B = m</code>",
+ "117": "<code>Fintype.card A = n</code>",
+ "116":
+ "<code>∀ (n m : ℕ) {A B : Type} [inst : Fintype A] [inst_1 : Fintype B] [inst_2 : DecidableEq A],\n  Fintype.card A = n → Fintype.card B = m → Fintype.card (A → B) = m ^ n</code>",
+ "115": "<code>?m.91094</code>",
+ "114":
+ "<code>fun_set_generalized (n m : ℕ) {A B : Type} [Fintype A] [Fintype B] [DecidableEq A] :\n  Fintype.card A = n → Fintype.card B = m → Fintype.card (A → B) = m ^ n</code>",
+ "113":
+ "<code class=\"docstring\">Apply congruence (recursively) to goals of the form `⊢ f as = f bs` and `⊢ HEq (f as) (f bs)`.\nThe optional parameter is the depth of the recursive applications.\nThis is useful when `congr` is too aggressive in breaking down the goal.\nFor example, given `⊢ f (g (x + y)) = f (g (y + x))`,\n`congr` produces the goals `⊢ x = y` and `⊢ y = x`,\nwhile `congr 2` produces the intended `⊢ x + y = y + x`.\n</code>",
+ "112":
+ "<code>Finset.card.{u_1} {α : Type u_1} (s : Finset α) : ℕ</code><span class=\"sep\"></span><code class=\"docstring\">`s.card` is the number of elements of `s`, aka its cardinality.\n\nThe notation `#s` can be accessed in the `Finset` locale. </code>",
+ "111":
+ "<code>Finset.univ.{u_1} {α : Type u_1} [Fintype α] : Finset α</code><span class=\"sep\"></span><code class=\"docstring\">`univ` is the universal finite set of type `Finset α` implied from\nthe assumption `Fintype α`. </code>",
+ "110":
+ "<code>Finset.prod_const.{u_3, u_4} {α : Type u_3} {β : Type u_4} {s : Finset α} [CommMonoid β] (b : β) :\n  ∏ _x ∈ s, b = b ^ s.card</code>",
+ "11":
+ "<code>And (a b : Prop) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`And a b`, or `a ∧ b`, is the conjunction of propositions. It can be\nconstructed and destructed like a pair: if `ha : a` and `hb : b` then\n`⟨ha, hb⟩ : a ∧ b`, and if `h : a ∧ b` then `h.left : a` and `h.right : b`.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `∧` in identifiers is `and`.\n\n * The recommended spelling of `/\\` in identifiers is `and` (prefer `∧` over `/\\`).</code>",
+ "109":
+ "<code>Fintype.card_pi.{u_4, u_6} {ι : Type u_4} {α : ι → Type u_6} [DecidableEq ι] [Fintype ι] [(i : ι) → Fintype (α i)] :\n  Fintype.card ((i : ι) → α i) = ∏ i : ι, Fintype.card (α i)</code>",
+ "108":
+ "<code>HPow.hPow.{u, v, w} {α : Type u} {β : Type v} {γ : outParam (Type w)} [self : HPow α β γ] : α → β → γ</code><span class=\"sep\"></span><code class=\"docstring\">`a ^ b` computes `a` to the power of `b`.\nThe meaning of this notation is type-dependent. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `^` in identifiers is `pow`.</code>",
+ "107": "<code>DecidableEq A</code>",
+ "106": "<code>Fintype B</code>",
+ "105": "<code>Fintype A</code>",
+ "104": "<code>Fintype.card B = 3</code>",
+ "103":
+ "<code>Fintype.card.{u_4} (α : Type u_4) [Fintype α] : ℕ</code><span class=\"sep\"></span><code class=\"docstring\">`card α` is the number of elements in `α`, defined when `α` is a fintype. </code>",
+ "102": "<code>Fintype.card A = 3</code>",
+ "101":
+ "<code>DecidableEq.{u} (α : Sort u) : Sort (max 1 u)</code><span class=\"sep\"></span><code class=\"docstring\">Asserts that `α` has decidable equality, that is, `a = b` is decidable\nfor all `a b : α`. See `Decidable`.\n</code>",
+ "100":
+ "<code>Fintype.{u_4} (α : Type u_4) : Type u_4</code><span class=\"sep\"></span><code class=\"docstring\">`Fintype α` means that `α` is finite, i.e. there are only\nfinitely many distinct elements of type `α`. The evidence of this\nis a finset `elems` (a list up to permutation without duplicates),\ntogether with a proof that everything of type `α` is in the list. </code>",
+ "10":
+ "<code>Eq.{u_1} {α : Sort u_1} : α → α → Prop</code><span class=\"sep\"></span><code class=\"docstring\">The equality relation. It has one introduction rule, `Eq.refl`.\nWe use `a = b` as notation for `Eq a b`.\nA fundamental property of equality is that it is an equivalence relation.\n```\nvariable (α : Type) (a b c d : α)\nvariable (hab : a = b) (hcb : c = b) (hcd : c = d)\n\nexample : a = d :=\n  Eq.trans (Eq.trans hab (Eq.symm hcb)) hcd\n```\nEquality is much more than an equivalence relation, however. It has the important property that every assertion\nrespects the equivalence, in the sense that we can substitute equal expressions without changing the truth value.\nThat is, given `h1 : a = b` and `h2 : p a`, we can construct a proof for `p b` using substitution: `Eq.subst h1 h2`.\nExample:\n```\nexample (α : Type) (a b : α) (p : α → Prop)\n        (h1 : a = b) (h2 : p a) : p b :=\n  Eq.subst h1 h2\n\nexample (α : Type) (a b : α) (p : α → Prop)\n    (h1 : a = b) (h2 : p a) : p b :=\n  h1 ▸ h2\n```\nThe triangle in the second presentation is a macro built on top of `Eq.subst` and `Eq.symm`, and you can enter it by typing `\\t`.\nFor more information: [Equality](https://lean-lang.org/theorem_proving_in_lean4/quantifiers_and_equality.html#equality)\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `=` in identifiers is `eq`.</code>",
+ "1":
+ "<code>Irrational (x : ℝ) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">A real number is irrational if it is not equal to any rational number. </code>",
+ "0": "<code>irrat_sqrt : Irrational √17</code>"}
