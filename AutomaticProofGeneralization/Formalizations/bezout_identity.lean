@@ -30,11 +30,14 @@ theorem bezout_identity : ∀ (x y : ℤ), y ≠ 0 → ∃ (h k : ℤ), isGCD (h
   -- Consider the set A = {hx + ky | x,y ∈ ℤ}
   let A := {z : ℤ | ∃ h k : ℤ, z = h * x + k * y}
 
+  -- This proof shows that the set A is closed under addition.
   have A_add : ∀ a ∈ A, ∀ b ∈ A, a + b ∈ A := by
     rintro a ⟨h, k, a_eq⟩ b ⟨h', k', b_eq⟩
     use (discharger := skip) (h + h'), (k + k')
     rw [a_eq, b_eq]
     rw [Int.add_assoc, Int.add_left_comm (k * y) _ _, ← Int.add_assoc, ← Int.add_mul, ← Int.add_mul]
+
+  -- This proof shows that the set A is closed under multiplication by an integer.
   have A_mul : ∀ a ∈ A, ∀ z : ℤ, z * a ∈ A := by
     rintro a ⟨h, k, a_eq⟩ z
     use z * h, z * k
@@ -43,6 +46,7 @@ theorem bezout_identity : ∀ (x y : ℤ), y ≠ 0 → ∃ (h k : ℤ), isGCD (h
 
   -- Consider the set B = {|z| | z ∈ A, |z| ≠ 0} of non-zero absolute values
   let B := (Int.natAbs '' A) \ {0}
+
   -- Show B is non-empty by constructing an element
   have hB_nonempty : ∃ b : ℕ, b ∈ B := by
     use (0*x + 1*y).natAbs
@@ -71,38 +75,52 @@ theorem bezout_identity : ∀ (x y : ℤ), y ≠ 0 → ∃ (h k : ℤ), isGCD (h
         ⟨Set.mem_image_of_mem Int.natAbs hz, hzAbs⟩
       rwa [hdAbs_eq_Bmin]
 
+  -- Show that d divides all elements of A
   have hd_div_A : ∀ a ∈ A, d ∣ a := by
     intro a ha_A
-    -- By division algorithm, x = qd + r for some q,r with 0 ≤ r < d
+    -- By division algorithm, a = qd + r for some q,r with 0 ≤ r < d
     let q := a / d
     let r := a % d
     have a_eq_quotRem : a = q*d + r := Eq.symm (Int.ediv_add_emod' a d)
+    -- Express r in terms of a and d
     have r_eq : r = (-q)*d + a := by
       rw [← neg_add_eq_iff_eq_add, Int.neg_mul_eq_neg_mul] at a_eq_quotRem
       symm; assumption
+    -- Show that the absolute value of r is less than d
     have rAbs_lt_dAbs : r.natAbs < d.natAbs := by
       apply Int.emod_natAbs_lt_of_nonzero
       assumption
+    -- Show that r is an element of A
     have hr_A : r ∈ A := by
       rw [r_eq]
       apply A_add
       · apply A_mul; assumption
       · assumption
+    -- Consider two cases: r is zero or r is non-zero
     by_cases hr_eq_0 : r.natAbs = (0 : ℕ)
-    · rw [Int.natAbs_eq_zero] at hr_eq_0
+    · -- If r is zero, then a is a multiple of d (since a = qd + r = qd + 0 = qd)
+      rw [Int.natAbs_eq_zero] at hr_eq_0 -- Here we say a.natAbs = 0 ↔ a = 0 which DOESN'T generalize to polynomials (p.degree = 0 ↔ p = 0)
       rw [a_eq_quotRem, hr_eq_0, Int.add_zero]
       exact Int.dvd_mul_left q d
-    · have hd_min_r := hd_min r hr_A
+    · -- If r is non-zero, then since r < d, and d is meant to be minimal, we have a contradiction
+      have hd_min_r := hd_min r hr_A
       contrapose hd_min_r
       push_neg
       constructor <;> assumption
 
+  -- If d is the gcd, then d | x, d | y, and d | anything that divides both x and y
+
+  -- Show d divides x (since x is in A)
   have hxA : x ∈ A := by use 1, 0; simp only [Int.one_mul, Int.zero_mul, Int.add_zero]
   have d_dvd_x : d ∣ x := hd_div_A x hxA
 
+  -- Show d divides y (since y is in A)
   have hyA : y ∈ A := by use 0, 1; simp only [Int.zero_mul, Int.one_mul, Int.zero_add]
   have d_dvd_y : d ∣ y := hd_div_A y hyA
 
+  -- If c | x and c | y, then we can write x = c cx and y = c cy.
+  -- We know d = hx + ky, so d = h (c cx) + k (c cy) = c * (h cx + k cy)
+  -- So d | c.
   obtain ⟨h, k, d_eq⟩ := hdA
   use (discharger := skip) h, k
   rw [isGCD]
