@@ -5,7 +5,7 @@ open Filter
 
 -- `0` is less than or equal to `2`
 -- HACK: this is needed for the `autogeneralize` algorithm to detect and generalize the `2` in the proof correctly
-theorem zero_le_two_ℝ : (0 : ℝ) ≤ (2 : ℝ) := zero_le_two
+lemma zero_le_two_ℝ : (0 : ℝ) ≤ (2 : ℝ) := zero_le_two
 
 theorem complex_sum_convergence
   -- `z` is a sequence of complex numbers
@@ -62,12 +62,11 @@ theorem complex_sum_convergence
 info: Successfully generalized ⏎
   complex_sum_convergence ⏎
 to ⏎
-  complex_sum_convergence.Gen : ∀ (n : ℝ),
-  0 ≤ n →
-    (Summable fun n_1 => (1 / n) ^ n_1) → ∀ (z : ℕ → ℂ), (∃ N, ∀ n_1 ≥ N, ‖z (n_1 + 1)‖ ≤ ‖z n_1‖ / n) → Summable z ⏎
+  complex_sum_convergence.Gen : ∀ (m : ℝ),
+  0 ≤ m → (Summable fun n => (1 / m) ^ n) → ∀ (z : ℕ → ℂ), (∃ N, ∀ n ≥ N, ‖z (n + 1)‖ ≤ ‖z n‖ / m) → Summable z ⏎
 by abstracting 2.
 -/
 #guard_msgs in
 example : True := by
-  autogeneralize (2 : ℝ) in complex_sum_convergence
+  autogeneralize (2 : ℝ) as m in complex_sum_convergence
   trivial
