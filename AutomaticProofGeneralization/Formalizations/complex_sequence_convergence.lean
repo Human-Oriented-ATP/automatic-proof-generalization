@@ -7,6 +7,10 @@ open Filter
 -- HACK: this is needed for the `autogeneralize` algorithm to detect and generalize the `2` in the proof correctly
 lemma zero_le_two_ℝ : (0 : ℝ) ≤ (2 : ℝ) := zero_le_two
 
+  -- `1 / 2` is less than `1`
+-- HACK: this is needed for the `autogeneralize` algorithm to detect and generalize the `2` in the proof correctly
+lemma one_half_lt_one_ℝ : (1 / (2 : ℝ)) < 1 := one_half_lt_one
+
 theorem complex_sum_convergence
   -- `z` is a sequence of complex numbers
   (z : ℕ → ℂ)
@@ -56,14 +60,17 @@ theorem complex_sum_convergence
   · -- the multiplicative constant `‖z' 0‖` can be ignored
     apply Summable.mul_left
     -- the sequence `(1 / 2) ^ n` is summable
-    exact summable_geometric_two
+    apply summable_geometric_of_lt_one
+    · rw [@one_div_nonneg]
+      exact zero_le_two_ℝ
+    · exact one_half_lt_one_ℝ
 
 /--
 info: Successfully generalized ⏎
   complex_sum_convergence ⏎
 to ⏎
   complex_sum_convergence.Gen : ∀ (m : ℝ),
-  0 ≤ m → (Summable fun n => (1 / m) ^ n) → ∀ (z : ℕ → ℂ), (∃ N, ∀ n ≥ N, ‖z (n + 1)‖ ≤ ‖z n‖ / m) → Summable z ⏎
+  0 ≤ m → 1 / m < 1 → ∀ (z : ℕ → ℂ), (∃ N, ∀ n ≥ N, ‖z (n + 1)‖ ≤ ‖z n‖ / m) → Summable z ⏎
 by abstracting 2.
 -/
 #guard_msgs in
