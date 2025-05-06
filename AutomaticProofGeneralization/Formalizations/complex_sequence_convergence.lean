@@ -1,4 +1,5 @@
 import Mathlib
+import AutomaticProofGeneralization.AutoGeneralizeTactic
 
 open Filter
 
@@ -6,7 +7,7 @@ theorem complex_sum_convergence
   -- `z` is a sequence of complex numbers
   (z : ℕ → ℂ)
   -- eventually, the sequence `z` decays by half at each step
-  (h : ∃ N, ∀ n ≥ N, ‖z (n+1)‖ ≤ ‖z n‖ / 2)
+  (h : ∃ N, ∀ n ≥ N, ‖z (n+1)‖ ≤ ‖z n‖ / (2 : ℝ))
   -- To prove: `z` is summable
   : Summable z := by
   -- obtain the number `N` after which the sequence starts decaying by half at each step
@@ -25,14 +26,14 @@ theorem complex_sum_convergence
   -- to show that a sequence is summable, it suffices to show that it's a Cauchy sequence
   rw [@summable_iff_cauchySeq_finset]
   -- the hypothesis `h` implies that the sequence decays exponentially by a factor of `2` after a point
-  have h' : ∀ m : ℕ, ‖z' m‖ ≤ ‖z' 0‖ / 2^m := by
+  let h' : ∀ m : ℕ, ‖z' m‖ ≤ ‖z' 0‖ / (2 : ℝ)^m := by
     intro m
     induction m with
-    | zero => simp
+    | zero => rw [npow_zero, div_one]
     | succ m ih =>
       calc  ‖z' (m + 1)‖
         _ ≤ ‖z' m‖ / 2           := by apply h'
-        _ ≤ (‖z' 0‖ / 2^m) / 2   := by gcongr
+        _ ≤ (‖z' 0‖ / 2^m) / 2   := div_le_div_of_nonneg_right ih zero_le_two
         _ = ‖z' 0‖ / 2 ^ (m + 1) := by rw [@div_div, @npow_add, @npow_one]
   -- this function is an upper bound for the norms of the sequence
   -- it is sufficient to show the summability of this sequence
@@ -52,3 +53,7 @@ theorem complex_sum_convergence
     apply Summable.mul_left
     -- the sequence `(1 / 2) ^ n` is summable
     exact summable_geometric_two
+
+example : True := by
+  autogeneralize (2 : ℝ) in complex_sum_convergence
+  trivial
