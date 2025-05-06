@@ -6,11 +6,10 @@ theorem complex_sum_convergence
   -- `z` is a sequence of complex numbers
   (z : ℕ → ℂ)
   -- eventually, the sequence `z` decays by half at each step
-  (h : ∀ᶠ n in atTop, ‖z (n+1)‖ ≤ ‖z n‖ / 2)
+  (h : ∃ N, ∀ n ≥ N, ‖z (n+1)‖ ≤ ‖z n‖ / 2)
   -- To prove: `z` is summable
   : Summable z := by
   -- obtain the number `N` after which the sequence starts decaying by half at each step
-  rw [@eventually_atTop] at h
   obtain ⟨N, hN⟩ := h
   -- the "tail" of the sequence `z` starting from `N`, i,e., the sequence `z_N, z_{N+1}, z_{N+2}, ...`
   let z' : ℕ → ℂ := fun n ↦ z (n + N)
