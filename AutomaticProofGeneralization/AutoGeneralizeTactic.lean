@@ -58,7 +58,7 @@ def autogeneralize (thmName : Name) (pattern : Expr) (customName? : Option Name 
   -- Add the generalized theorem to the context.
   createLetHypothesis genThmType genThmProof (thmName++`Gen)
 
-  logInfo s!"Successfully generalized \n  {thmName} \nto \n  {thmName++`Gen} \nby abstracting {← ppExpr pattern}."
+  logInfo m!"Successfully generalized \n  {thmName} \nto \n  {thmName++`Gen} : {genThmType} \nby abstracting {← ppExpr pattern}."
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Autogeneralizes the "pattern" in the hypothesis "h",
