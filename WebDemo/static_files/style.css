@@ -118,12 +118,12 @@ Change appearance of links
 ********************************************/
 a {
 	outline:         none !important;
-	font-weight:     bold;
+	/* font-weight:     bold; */
 	text-decoration: none;
 }
 
 a:link {
-	color: #c00;
+	color: #606;
 }
 
 a:visited {
@@ -193,6 +193,7 @@ h6 {
 /*******************************************
 Add spacing between paragraphs
 ********************************************/
+
 
 p + p {
 	margin-top:  20px;
@@ -363,5 +364,5 @@ p:has(> code.math.display) {
 
 code.hl.lean.block {
 	margin-top:10px;
-	margin-bottom: 10px;
+	margin-bottom: 30px;
 }
