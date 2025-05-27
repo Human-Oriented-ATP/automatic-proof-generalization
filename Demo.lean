@@ -133,7 +133,7 @@ Generalization of the addition operation _+_ in a proof adapted from mathlib's `
 to a general binary function with certain properties.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
-example : ∀ (T : Type)        -- If you have an arbitrary set
+example : ∀ (T : Type)        -- If you have an arbitrary type
   [inverse : Neg T]           -- with a symbol representing the inverse,
   (e : T)                     -- and a symbol representing the identity,
   (f : T → T → T),            -- and a binary operation
