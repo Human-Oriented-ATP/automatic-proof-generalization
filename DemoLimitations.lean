@@ -23,7 +23,7 @@ theorem dvd_left_of_dvd_prod {a b c : ℤ} (h : a ∣ b) : a ∣ (b * c) := by
      to extract out a witness `d : ℤ` satisfying `d * a = b` from the hypothesis `h`.
      This step breaks when `ℤ` is replaced by an arbitrary type. -/
   rcases h with ⟨d, hd⟩
-  use (d * c)
+  exists (d * c)
   rw [hd, mul_assoc]
 
 set_option trace.AntiUnify true
@@ -37,7 +37,7 @@ example : True := by -- this generalization fails
 theorem dvd_left_of_dvd_prod_fixed {a b c : ℤ} (h : a ∣ b) : a ∣ (b * c) := by
   rw [Int.dvd_def] at * -- expand `a ∣ b` to `∃ d, d * a = b` everywhere
   rcases h with ⟨d, hd⟩ -- obtain the `d` such that `a * d = b` from hypothesis `h`, which now has the correct type
-  use (d * c)
+  exists (d * c)
   rw [hd, mul_assoc]
 
 example : True := by -- this generalization succeeds
@@ -48,7 +48,7 @@ example : True := by -- this generalization succeeds
 
 theorem exists_left_id : ∀ (x : ℤ), ∃ (y : ℤ), y + x = x := by
   intro x
-  use (0 : ℤ)
+  exists (0 : ℤ)
   exact zero_add x
 
 example : True := by -- this generalization fails
@@ -59,7 +59,7 @@ example : True := by -- this generalization fails
 
 theorem exists_left_id_int : ∀ (x : ℤ), ∃ (y : ℤ), y + x = x := by
   intro x
-  use (0 : ℤ)
+  exists (0 : ℤ)
   exact Int.zero_add x -- this proof uses the more specific `Int.zero_add`, which does not rely on typeclasses
 
 example : True := by -- this generalization succeeds
@@ -71,5 +71,5 @@ example : True := by -- this generalization succeeds
 -- This would be an ideal generalization of `exists_left_id`
 theorem exists_left_id_gen {T} [AddGroup T] : ∀ (x : T), ∃ (y : T), y + x = x := by
   intro x
-  use (0 : T)
+  exists (0 : T)
   exact zero_add x
