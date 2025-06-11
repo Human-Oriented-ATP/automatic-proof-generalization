@@ -9,6 +9,23 @@ open Lean Elab Tactic Meta Term Command AntiUnify
 initialize
   registerTraceClass `TypecheckingErrors
 
+structure ReplaceM.State where
+  mismatches : List Expr := []
+  modified : Bool := false
+
+abbrev ReplaceM := StateT ReplaceM.State MetaM
+
+def ReplaceM.addConflictingTerms (terms : List Expr) : ReplaceM Unit := do
+  modify fun s => { s with mismatches := (terms ++ s.mismatches).eraseDups }
+
+def withReturnIfModified {α} (act : ReplaceM α) : ReplaceM (Option α) := do
+  modify ({· with modified := false})
+  let result ← act
+  if (← get).modified then
+    return some result
+  else
+    return none
+
 /--
 Replaces all instances of `p` in `e` with a metavariable.
 Roughly implemented like kabstract, with the following differences:
@@ -17,12 +34,12 @@ Roughly implemented like kabstract, with the following differences:
   kabstract doesn't look for instances of "p" in the types of constants, this does
   kabstract doesn't look under binders, but this creates LocalDecls so we can still look under binders
 -/
-partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) (linsts : LocalInstances) : StateT (List Expr) MetaM Expr := do
+partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) (linsts : LocalInstances) : ReplaceM Expr := do
   -- logInfo m!"We are replacing the pattern {p}:{← inferType p} with mvars."
 
   -- the "depth" here is not depth of expression, but how many constants / theorems / inference rules we have unfolded
-  let rec visit (e : Expr) (depth : Nat := 0): StateT (List Expr) MetaM Expr := do
-    let visitChildren : Unit →  StateT (List Expr) MetaM Expr := fun _ => do
+  let rec visit (e : Expr) (depth : Nat := 0): ReplaceM Expr := do
+    let visitChildren : Unit →  ReplaceM Expr := fun _ => do
       if e.hasLooseBVars then
         logInfo m!"Loose BVars detected on expression {e}"
       match e with
@@ -41,7 +58,7 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
                               -- the mismatch is probably caused because something else needs to be generalized
                               let (_result, problemTerms) ← getTermsToGeneralize expectedA inferredA
                               trace[TypecheckingErrors] m!"The mismatch can probably be fixed by generalizing the terms {problemTerms}"
-                              modify fun terms ↦ (problemTerms.map Prod.snd ++ terms).eraseDups
+                              ReplaceM.addConflictingTerms (problemTerms.map Prod.snd)
                               return e.updateApp! fAbs aAbs
       | .mdata _ b       => return e.updateMData! (← visit b depth)
       | .proj _ _ b      => return e.updateProj! (← visit b depth)
@@ -120,14 +137,10 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
         return e'
       else
         let e'Type ← inferType e'
-        let e'TypeAbs ← visit e'Type (depth + 1)
-        let ⟨_, mismatches⟩ ← antiUnify e'Type e'TypeAbs
-        if mismatches.isEmpty then -- if the two expressions are essentially the same
-          return e'
-        else
-          let m ← mkFreshExprMVarAt lctx linsts e'TypeAbs (kind := .synthetic)
-            -- (userName := mkAbstractedName n)-- mvar for generalized proof
-          return m
+        let some e'TypeAbs ← withReturnIfModified <| visit e'Type (depth + 1) | return e'
+        let m ← mkFreshExprMVarAt lctx linsts e'TypeAbs (kind := .synthetic)
+          -- (userName := mkAbstractedName n)-- mvar for generalized proof
+        return m
 
   visit e
 
