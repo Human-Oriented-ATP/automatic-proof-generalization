@@ -90,18 +90,18 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
       -- when we encounter a theorem used in the proof
       -- check whether that theorem has the variable we're trying to generalize
       -- if it does, generalize the theorem accordingly, and make its proof an mvar.
-      | .const n us      => let constType ← inferType (.const n us) -- this ensures that universe levels are instantiated correctly
+      -- | .const n us      => let constType ← inferType (.const n us) -- this ensures that universe levels are instantiated correctly
 
-                            if depth > 2 then return e
+      --                       if depth > 2 then return e
 
-                            else
-                                let genConstType ← visit constType (depth+1)  -- expr for generalized proof statment
-                                -- if the const does have the pattern in its definition, it is a property we should generalize
-                                if genConstType.hasExprMVar then
-                                  let m ← mkFreshExprMVarAt lctx linsts genConstType (kind := .synthetic) (userName := mkAbstractedName n)-- mvar for generalized proof
-                                  return m
-                                -- otherwise, we don't need to expand the definition of the const
-                                else return e
+      --                       else
+      --                           let genConstType ← visit constType (depth+1)  -- expr for generalized proof statment
+      --                           -- if the const does have the pattern in its definition, it is a property we should generalize
+      --                           if genConstType.hasExprMVar then
+      --                             let m ← mkFreshExprMVarAt lctx linsts genConstType (kind := .synthetic) (userName := mkAbstractedName n)-- mvar for generalized proof
+      --                             return m
+      --                           -- otherwise, we don't need to expand the definition of the const
+      --                           else return e
       | e                => return e
 
     -- if the expression "e" is the pattern you want to replace...
@@ -115,7 +115,21 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
     else
       setMCtx mctx
       -- so that other matches are still possible.
-      visitChildren ()
+      let e' ← visitChildren ()
+
+      if depth > 2 then
+        return e'
+      else
+        let e'Type ← inferType e'
+        let e'TypeAbs ← visit e'Type (depth + 1)
+        let ⟨_, mismatches⟩ ← antiUnify e'Type e'TypeAbs
+        if mismatches.isEmpty then -- if the two expressions are essentially the same
+          return e'
+        else
+          let m ← mkFreshExprMVarAt lctx linsts e'TypeAbs (kind := .synthetic)
+            -- (userName := mkAbstractedName n)-- mvar for generalized proof
+          return m
+
   visit e
 
 /- Just like kabstract, except abstracts to mvars instead of bvars
