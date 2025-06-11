@@ -19,8 +19,6 @@ Roughly implemented like kabstract, with the following differences:
 -/
 partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) (linsts : LocalInstances) : StateT (List Expr) MetaM Expr := do
   -- logInfo m!"We are replacing the pattern {p}:{← inferType p} with mvars."
-  -- abstracting `p` so that it can be transported to other meta-variable contexts
-  let pAbs ← abstractMVars p (levels := false) -- the `(levels := false)` prevents unusual instantiations across universe levels
 
   -- the "depth" here is not depth of expression, but how many constants / theorems / inference rules we have unfolded
   let rec visit (e : Expr) (depth : Nat := 0): StateT (List Expr) MetaM Expr := do
@@ -106,10 +104,11 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
 
     -- if the expression "e" is the pattern you want to replace...
     let mctx ← getMCtx
-    let (_, _, p) ← openAbstractMVarsResult pAbs
     if !e.isMVar && (← isDefEq e p) then
       -- since the type of `p` may be slightly different each time depending on the context it's in, we infer its type each time
-      let m ← mkFreshExprMVarAt lctx linsts (← inferType p) (userName := placeholderName) -- replace every occurrence of pattern with mvar
+      let pType ← instantiateMVars =<< inferType p
+      setMCtx mctx
+      let m ← mkFreshExprMVarAt lctx linsts pType (userName := placeholderName) -- replace every occurrence of pattern with mvar
       return m
     -- otherwise, "e" might contain the pattern...
     else
