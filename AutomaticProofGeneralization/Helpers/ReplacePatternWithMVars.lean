@@ -8,6 +8,12 @@ open Lean Elab Tactic Meta Term Command AntiUnify
 
 initialize
   registerTraceClass `TypecheckingErrors
+  registerTraceClass `Autogeneralize.abstractPattern
+
+local instance {α} : ExceptToEmoji Exception α where
+  toEmoji
+  | .error _ => crossEmoji
+  | .ok _ => ""
 
 structure ReplaceM.Context where
   lctx : LocalContext := {}
@@ -64,6 +70,7 @@ Roughly implemented like kabstract, with the following differences:
 partial def replacePatternWithMVars (e : Expr) (p : Expr) : ReplaceM Expr := do
   -- logInfo m!"We are replacing the pattern {p}:{← inferType p} with mvars."
   let pType ← inferType p
+  trace[Autogeneralize.abstractPattern] m!"Abstracting pattern {p} of type {pType}"
   -- the "depth" here is not depth of expression, but how many constants / theorems / inference rules we have unfolded
   let rec visit (e : Expr) : ReplaceM Expr := do
     let visitChildren : Unit → ReplaceM Expr := fun _ => do
@@ -113,8 +120,6 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) : ReplaceM Expr := do
                                     pure b
                                 return ← mkLambdaFVars #[placeholder] bAbs (binderInfoForMVars := bi) -- put the "n:dAbs" back in the expression itself instead of in an external fvar
 
-                              if updatedLambda.hasLooseBVars then
-                                logInfo m!"Loose BVars detected on expression {e}"
                               return updatedLambda
       | .forallE n d b bi =>
                               let dAbs ← visit d
@@ -142,28 +147,31 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) : ReplaceM Expr := do
       --                           else return e
       | e                => return e
 
-    -- if the expression "e" is the pattern you want to replace...
-    -- let mctx ← getMCtx
-    if !e.isMVar && e == p then -- (← liftM <| withoutModifyingState <| isDefEq e p) then
-      -- since the type of `p` may be slightly different each time depending on the context it's in, we infer its type each time
-      -- setMCtx mctx
-      mkExprMVar pType (userName := placeholderName) -- replace every occurrence of pattern with mvar
-    -- otherwise, "e" might contain the pattern...
-    else
-      -- setMCtx mctx
-      -- so that other matches are still possible.
-      let e' ← visitChildren ()
-
-      if (← read).depth > (← read).cutOffDepth || !(← read).abstractHyps then
-        return e'
+    withTraceNodeBefore `Autogeneralize.abstractPattern (pure m!"Visiting {e} at depth {(← read).depth}") do
+      -- if the expression "e" is the pattern you want to replace...
+      -- let mctx ← getMCtx
+      if !e.isMVar && e == p then -- (← liftM <| withoutModifyingState <| isDefEq e p) then
+        -- since the type of `p` may be slightly different each time depending on the context it's in, we infer its type each time
+        -- setMCtx mctx
+        trace[Autogeneralize.abstractPattern] m!"{checkEmoji} Found pattern {p}, replacing with mvar"
+        mkExprMVar pType (userName := placeholderName) -- replace every occurrence of pattern with mvar
+      -- otherwise, "e" might contain the pattern...
       else
-        let e'Type ← inferType e'
-        let some e'TypeAbs ←
-          withReturnIfModified <| withIncDepth <| withoutAbstractingHypsOrGeneralizingConstants <|
-            visit e'Type | return e'
-        logInfo m!"Generating hypothesis {e'TypeAbs}"
-        mkExprMVar e'TypeAbs
-          -- (userName := mkAbstractedName n)-- mvar for generalized proof
+        -- setMCtx mctx
+        -- so that other matches are still possible.
+        let e' ← visitChildren ()
+
+        if (← read).depth > (← read).cutOffDepth || !(← read).abstractHyps then
+          return e'
+        else
+          let e'Type ← inferType e'
+          trace[Autogeneralize.abstractPattern] m!"🔍 Inspecting type {e'Type}"
+          let some e'TypeAbs ←
+            withReturnIfModified <| withIncDepth <| withoutAbstractingHypsOrGeneralizingConstants <|
+              visit e'Type | return e'
+            trace[Autogeneralize.abstractPattern] m!"⭐ Generating hypothesis {e'TypeAbs}"
+          mkExprMVar e'TypeAbs
+            -- (userName := mkAbstractedName n)-- mvar for generalized proof
   visit e
 
 /- Just like kabstract, except abstracts to mvars instead of bvars
