@@ -9,16 +9,24 @@ open Lean Elab Tactic Meta Term Command AntiUnify
 initialize
   registerTraceClass `TypecheckingErrors
 
+structure ReplaceM.Context where
+  lctx : LocalContext := {}
+  localInstances : LocalInstances := {}
+  depth : Nat := 0
+  abstractHyps : Bool := true
+  generalizeRelatedConstants : Bool := false
+  cutOffDepth : Nat := 2
+
 structure ReplaceM.State where
   mismatches : List Expr := []
   modified : Bool := false
 
-abbrev ReplaceM := StateT ReplaceM.State MetaM
+abbrev ReplaceM := ReaderT ReplaceM.Context <| StateT ReplaceM.State MetaM
 
 def ReplaceM.addConflictingTerms (terms : List Expr) : ReplaceM Unit := do
-  modify fun s => { s with mismatches := (terms ++ s.mismatches).eraseDups }
+  modify fun σ => { σ with mismatches := (terms ++ σ.mismatches).eraseDups }
 
-def withReturnIfModified {α} (act : ReplaceM α) : ReplaceM (Option α) := do
+def ReplaceM.withReturnIfModified {α} (act : ReplaceM α) : ReplaceM (Option α) := do
   modify ({· with modified := false})
   let result ← act
   if (← get).modified then
@@ -26,6 +34,25 @@ def withReturnIfModified {α} (act : ReplaceM α) : ReplaceM (Option α) := do
   else
     return none
 
+def ReplaceM.mkExprMVar (type : Expr) (userName : Name := .anonymous) : ReplaceM Expr := do
+  let ctx ← read
+  let mvar ← mkFreshExprMVarAt ctx.lctx ctx.localInstances type (kind := .synthetic) (userName := userName)
+  modify ({ · with modified := true })
+  return mvar
+
+def ReplaceM.withIncDepth {α} : ReplaceM α → ReplaceM α :=
+  withReader fun ctx ↦ { ctx with depth := ctx.depth + 1 }
+
+def ReplaceM.withoutAbstractingHypsOrGeneralizingConstants {α} : ReplaceM α → ReplaceM α :=
+  withReader fun ctx ↦ { ctx with abstractHyps := false, generalizeRelatedConstants := false }
+
+def ReplaceM.run {α} (m : ReplaceM α) : MetaM (α × ReplaceM.State) := do
+  ReaderT.run m { lctx := ← getLCtx, localInstances := ← getLocalInstances } |>.run {}
+
+def ReplaceM.run' {α} (m : ReplaceM α) : MetaM α := do
+  ReaderT.run m { lctx := ← getLCtx, localInstances := ← getLocalInstances } |>.run' {}
+
+open ReplaceM in
 /--
 Replaces all instances of `p` in `e` with a metavariable.
 Roughly implemented like kabstract, with the following differences:
@@ -34,73 +61,69 @@ Roughly implemented like kabstract, with the following differences:
   kabstract doesn't look for instances of "p" in the types of constants, this does
   kabstract doesn't look under binders, but this creates LocalDecls so we can still look under binders
 -/
-partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) (linsts : LocalInstances) : ReplaceM Expr := do
+partial def replacePatternWithMVars (e : Expr) (p : Expr) : ReplaceM Expr := do
   -- logInfo m!"We are replacing the pattern {p}:{← inferType p} with mvars."
-
+  let pType ← inferType p
   -- the "depth" here is not depth of expression, but how many constants / theorems / inference rules we have unfolded
-  let rec visit (e : Expr) (depth : Nat := 0): ReplaceM Expr := do
-    let visitChildren : Unit →  ReplaceM Expr := fun _ => do
-      if e.hasLooseBVars then
-        logInfo m!"Loose BVars detected on expression {e}"
+  let rec visit (e : Expr) : ReplaceM Expr := do
+    let visitChildren : Unit → ReplaceM Expr := fun _ => do
       match e with
       -- unify types of metavariables as soon as we get a chance in .app
       -- that is, ensure that fAbs and aAbs are in sync about their metavariables
       | .app f a         =>
-                            let mut fAbs ← visit f depth -- the type
-                            let expectedA ← extractArgType fAbs
-                            let aAbs ← visit a depth
-                            let inferredA ← inferType aAbs
-                            if ← liftM <| withoutModifyingState <| isDefEq expectedA inferredA then
-                              return e.updateApp! fAbs aAbs
-                            else
-                              trace[TypecheckingErrors] m!"Error in typechecking: aAbs was expected to have type \n\t{expectedA} \nbut has type \n\t{inferredA}"
-
-                              -- the mismatch is probably caused because something else needs to be generalized
-                              let (_result, problemTerms) ← getTermsToGeneralize expectedA inferredA
-                              trace[TypecheckingErrors] m!"The mismatch can probably be fixed by generalizing the terms {problemTerms}"
-                              ReplaceM.addConflictingTerms (problemTerms.map Prod.snd)
-                              return e.updateApp! fAbs aAbs
-      | .mdata _ b       => return e.updateMData! (← visit b depth)
-      | .proj _ _ b      => return e.updateProj! (← visit b depth)
-      | .letE n t v b _ =>  let tAbs ← visit t depth
-                            let vAbs ← visit v depth
+                            let fAbs ← visit f -- the type
+                            let aAbs ← visit a
+                            if (← read).generalizeRelatedConstants then
+                              let expectedA ← extractArgType fAbs
+                              let inferredA ← inferType aAbs
+                              unless ← liftM <| withoutModifyingState <| isDefEq expectedA inferredA do
+                                trace[TypecheckingErrors] m!"Error in typechecking: aAbs was expected to have type \n\t{expectedA} \nbut has type \n\t{inferredA}"
+                                -- the mismatch is probably caused because something else needs to be generalized
+                                let (_result, problemTerms) ← getTermsToGeneralize expectedA inferredA
+                                trace[TypecheckingErrors] m!"The mismatch can probably be fixed by generalizing the terms {problemTerms}"
+                                ReplaceM.addConflictingTerms (problemTerms.map Prod.snd)
+                            return e.updateApp! fAbs aAbs
+      | .mdata _ b       => return e.updateMData! (← visit b)
+      | .proj _ _ b      => return e.updateProj! (← visit b)
+      | .letE n t v b _ =>  let tAbs ← visit t
+                            let vAbs ← visit v
                             -- ensure that the generalized value and type are still in sync
                             unless ← isDefEq tAbs (← inferType vAbs) do
                               throwError m!"Expected the type of {vAbs} in `let` statement to be {tAbs}, but got {← inferType vAbs}"
-                            let updatedLet ← withLetDecl n tAbs vAbs (fun placeholder => do
+                            let updatedLet ← withLetDecl n tAbs vAbs fun placeholder => do
                               let b := b.instantiate1 placeholder
-                              let bAbs ← if (←  liftM <| withoutModifyingState (isDefEq tAbs t)) then
-                                    visit b depth -- now it's safe to recurse on b (no loose bvars)
+                              let bAbs ← if (←  liftM <| withoutModifyingState <| isDefEq tAbs t) then
+                                    visit b -- now it's safe to recurse on b (no loose bvars)
                                   else
                                     logInfo m!"tAbs {tAbs} and t {t} are not defeq"
-                                    return b
+                                    pure b
                               return ← mkLetFVars (usedLetOnly := false) #[placeholder] bAbs-- put the "n:tAbs" back in the expression itself instead of in an external fvar
-                            )
+
                             return updatedLet
       | .lam n d b bi     =>
-                              let dAbs ← visit d depth
+                              let dAbs ← visit d
                               --"withLocalDecl" temporarily adds "n : dAbs" to context, storing the fvar in placeholder
-                              let updatedLambda ← withLocalDecl n bi dAbs (fun placeholder => do
+                              let updatedLambda ← withLocalDecl n bi dAbs fun placeholder => do
                                 let b := b.instantiate1 placeholder
                                 let bAbs ←
-                                  if (←  liftM <| withoutModifyingState (isDefEq dAbs d)) then
-                                    visit b depth-- now it's safe to recurse on b (no loose bvars)
+                                  if (←  liftM <| withoutModifyingState <| isDefEq dAbs d) then
+                                    visit b-- now it's safe to recurse on b (no loose bvars)
                                   else
                                     logInfo m!"dAbs {dAbs} and d {d} are not defeq"
-                                    return b
+                                    pure b
                                 return ← mkLambdaFVars #[placeholder] bAbs (binderInfoForMVars := bi) -- put the "n:dAbs" back in the expression itself instead of in an external fvar
-                              )
+
                               if updatedLambda.hasLooseBVars then
                                 logInfo m!"Loose BVars detected on expression {e}"
                               return updatedLambda
       | .forallE n d b bi =>
-                              let dAbs ← visit d depth
+                              let dAbs ← visit d
                               --"withLocalDecl" temporarily adds "n : dAbs" to context, storing the fvar in placeholder
-                              let updatedForAll ← withLocalDecl n bi dAbs (fun placeholder => do
+                              let updatedForAll ← withLocalDecl n bi dAbs fun placeholder => do
                                 let b := b.instantiate1 placeholder
-                                let bAbs ← visit b depth  -- now it's safe to recurse on b (no loose bvars)
+                                let bAbs ← visit b  -- now it's safe to recurse on b (no loose bvars)
                                 return ← mkForallFVars #[placeholder] bAbs (binderInfoForMVars := bi) -- put the "n:dAbs" back in the expression itself instead of in an external fvar
-                              )
+
                               return updatedForAll
       -- when we encounter a theorem used in the proof
       -- check whether that theorem has the variable we're trying to generalize
@@ -120,28 +143,27 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) (lctx : LocalContext) 
       | e                => return e
 
     -- if the expression "e" is the pattern you want to replace...
-    let mctx ← getMCtx
-    if !e.isMVar && (← isDefEq e p) then
+    -- let mctx ← getMCtx
+    if !e.isMVar && e == p then -- (← liftM <| withoutModifyingState <| isDefEq e p) then
       -- since the type of `p` may be slightly different each time depending on the context it's in, we infer its type each time
-      let pType ← instantiateMVars =<< inferType p
-      setMCtx mctx
-      let m ← mkFreshExprMVarAt lctx linsts pType (userName := placeholderName) -- replace every occurrence of pattern with mvar
-      return m
+      -- setMCtx mctx
+      mkExprMVar pType (userName := placeholderName) -- replace every occurrence of pattern with mvar
     -- otherwise, "e" might contain the pattern...
     else
-      setMCtx mctx
+      -- setMCtx mctx
       -- so that other matches are still possible.
       let e' ← visitChildren ()
 
-      if depth > 2 then
+      if (← read).depth > (← read).cutOffDepth || !(← read).abstractHyps then
         return e'
       else
         let e'Type ← inferType e'
-        let some e'TypeAbs ← withReturnIfModified <| visit e'Type (depth + 1) | return e'
-        let m ← mkFreshExprMVarAt lctx linsts e'TypeAbs (kind := .synthetic)
+        let some e'TypeAbs ←
+          withReturnIfModified <| withIncDepth <| withoutAbstractingHypsOrGeneralizingConstants <|
+            visit e'Type | return e'
+        logInfo m!"Generating hypothesis {e'TypeAbs}"
+        mkExprMVar e'TypeAbs
           -- (userName := mkAbstractedName n)-- mvar for generalized proof
-        return m
-
   visit e
 
 /- Just like kabstract, except abstracts to mvars instead of bvars
