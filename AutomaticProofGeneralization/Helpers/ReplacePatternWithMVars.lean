@@ -1,7 +1,7 @@
 import Lean
 import AutomaticProofGeneralization.Helpers.Antiunification
-import AutomaticProofGeneralization.Helpers.Metavariables
 import AutomaticProofGeneralization.Helpers.Naming
+import AutomaticProofGeneralization.Helpers.Metavariables
 import AutomaticProofGeneralization.Helpers.FunctionApplications
 
 open Lean Elab Tactic Meta Term Command AntiUnify
@@ -20,7 +20,7 @@ structure ReplaceM.Context where
   localInstances : LocalInstances := {}
   depth : Nat := 0
   abstractHyps : Bool := true
-  generalizeRelatedConstants : Bool := false
+  generalizeRelatedConstants : Bool := true
   cutOffDepth : Nat := 2
 
 structure ReplaceM.State where
@@ -130,34 +130,21 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) : ReplaceM Expr := do
                                 return ← mkForallFVars #[placeholder] bAbs (binderInfoForMVars := bi) -- put the "n:dAbs" back in the expression itself instead of in an external fvar
 
                               return updatedForAll
-      -- when we encounter a theorem used in the proof
-      -- check whether that theorem has the variable we're trying to generalize
-      -- if it does, generalize the theorem accordingly, and make its proof an mvar.
-      -- | .const n us      => let constType ← inferType (.const n us) -- this ensures that universe levels are instantiated correctly
-
-      --                       if depth > 2 then return e
-
-      --                       else
-      --                           let genConstType ← visit constType (depth+1)  -- expr for generalized proof statment
-      --                           -- if the const does have the pattern in its definition, it is a property we should generalize
-      --                           if genConstType.hasExprMVar then
-      --                             let m ← mkFreshExprMVarAt lctx linsts genConstType (kind := .synthetic) (userName := mkAbstractedName n)-- mvar for generalized proof
-      --                             return m
-      --                           -- otherwise, we don't need to expand the definition of the const
-      --                           else return e
-      | e                => return e
+      | e                =>
+        return e
 
     withTraceNodeBefore `Autogeneralize.abstractPattern (pure m!"Visiting {e} at depth {(← read).depth}") do
       -- if the expression "e" is the pattern you want to replace...
-      -- let mctx ← getMCtx
-      if !e.isMVar && e == p then -- (← liftM <| withoutModifyingState <| isDefEq e p) then
+      let mctx ← getMCtx
+      if !e.isMVar && (← isDefEq e p) then -- (← liftM <| withoutModifyingState <| isDefEq e p) then
         -- since the type of `p` may be slightly different each time depending on the context it's in, we infer its type each time
-        -- setMCtx mctx
+        let pType ← instantiateMVars pType
+        setMCtx mctx
         trace[Autogeneralize.abstractPattern] m!"{checkEmoji} Found pattern {p}, replacing with mvar"
         mkExprMVar pType (userName := placeholderName) -- replace every occurrence of pattern with mvar
       -- otherwise, "e" might contain the pattern...
       else
-        -- setMCtx mctx
+        setMCtx mctx
         -- so that other matches are still possible.
         let e' ← visitChildren ()
 
