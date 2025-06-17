@@ -15,12 +15,6 @@ theorem max_deg_imp_adj_all {V : Type} [Fintype V] {v : V} {G : SimpleGraph V} [
   simp only [isEmpty_subtype, SimpleGraph.mem_neighborSet, SimpleGraph.compl_adj,  not_and, not_not] at hdeg_compl
   exact (hdeg_compl w hne.symm).symm
 
-/- The algorithm currently cannot generalize this proof of `1 < 3` since
-   it does not explicitly use `3` anywhere.
-   We prove it as a separate lemma to allow our algorithm to pick it up,
-   and plan to address this form of generalization in future work. -/
-def one_lt_three : 1 < 3 := by exact Nat.one_lt_succ_succ 1
-
 /- For any simple graph on 4 vertices, its degree sequence can't be {1,3,3,3}. -/
 theorem impossible_graph (G : SimpleGraph (Fin 4)) [DecidableRel G.Adj]:
 ¬(∃ (v : Fin 4), G.degree v = 1 ∧ ∀ w ≠ v, G.degree w = 3) := by
@@ -49,4 +43,4 @@ theorem impossible_graph (G : SimpleGraph (Fin 4)) [DecidableRel G.Adj]:
     exact neq_imp_adj
 
   rw [v_deg] at v_deg_geq
-  exact Nat.not_lt.mpr v_deg_geq one_lt_three
+  exact Nat.not_lt.mpr v_deg_geq (Nat.one_lt_succ_succ 1)
