@@ -20,10 +20,10 @@ def autogeneralize (thmName : Name) (pattern : Expr) (customName? : Option Name 
   -- Get the generalized theorem (replace instances of pattern with mvars)
   let mut genThmProof := thmProof
   let mut dependenciesToGeneralize := [] -- keep track of dependencies of what must be generalized first
-  (_, ⟨dependenciesToGeneralize, _⟩) ← replacePatternWithMVars genThmProof pattern |>.run  -- replace instances of f's old value with metavariables
+  (genThmProof, ⟨dependenciesToGeneralize, _⟩) ← replacePatternWithMVars genThmProof pattern |>.run  -- replace instances of f's old value with metavariables
 
   -- Generalize all constants that `pattern` has dependencies on, and then generalize `pattern`
-  dependenciesToGeneralize := dependenciesToGeneralize.eraseDups ++ [pattern]
+  dependenciesToGeneralize := dependenciesToGeneralize.eraseDups
   trace[ProofPrinting] m!"We are abstracting the following constants: { dependenciesToGeneralize}"
   for dep in dependenciesToGeneralize do
     genThmProof ← replacePatternWithMVars genThmProof dep |>.run'
