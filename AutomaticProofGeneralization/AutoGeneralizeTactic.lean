@@ -93,7 +93,7 @@ def decodeOccurrences : TSyntax `Autogeneralize.occurrences → List Nat
 
 /-- A tactic that generalizes all instances of `pattern` in a local hypotheses `h` by requiring `pattern` to have only the properties used in the proof of `h`.-/
 elab "autogeneralize" pattern:term customName?:(customName)? "in" h:ident occs:(Autogeneralize.occurrences)? : tactic => do
-  let pattern ← Tactic.elabTermForApply pattern
+  let pattern ← withReducibleAndInstances <| reduce <| ← Tactic.elabTermForApply pattern
   let h := h.getId
   let occs := occs.map decodeOccurrences
   let customName? := decodeCustomName customName?

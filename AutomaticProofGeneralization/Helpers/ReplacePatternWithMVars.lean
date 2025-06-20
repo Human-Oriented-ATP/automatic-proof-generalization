@@ -69,7 +69,7 @@ Roughly implemented like kabstract, with the following differences:
 -/
 partial def replacePatternWithMVars (e : Expr) (p : Expr) : ReplaceM Expr := do
   -- logInfo m!"We are replacing the pattern {p}:{← inferType p} with mvars."
-  let pType ← inferType p
+  let pType ← withReducibleAndInstances <| reduce <| ← inferType p
   trace[Autogeneralize.abstractPattern] m!"Abstracting pattern {p} of type {pType}"
   -- the "depth" here is not depth of expression, but how many constants / theorems / inference rules we have unfolded
   let rec visit (e : Expr) : ReplaceM Expr := do
@@ -136,7 +136,7 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) : ReplaceM Expr := do
     withTraceNodeBefore `Autogeneralize.abstractPattern (pure m!"Visiting {e} at depth {(← read).depth}") do
       -- if the expression "e" is the pattern you want to replace...
       let mctx ← getMCtx
-      if !e.isMVar && (← isDefEq e p) then -- (← liftM <| withoutModifyingState <| isDefEq e p) then
+      if !e.isMVar && (← withReducibleAndInstances <| isDefEq e p) then -- (← liftM <| withoutModifyingState <| isDefEq e p) then
         -- since the type of `p` may be slightly different each time depending on the context it's in, we infer its type each time
         let pType ← instantiateMVars pType
         setMCtx mctx
