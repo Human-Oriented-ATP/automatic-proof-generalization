@@ -3,14 +3,6 @@ import AutomaticProofGeneralization.AutoGeneralizeTactic
 
 open Filter
 
--- `0` is less than or equal to `2`
--- HACK: this is needed for the `autogeneralize` algorithm to detect and generalize the `2` in the proof correctly
-lemma zero_le_two_ℝ : (0 : ℝ) ≤ (2 : ℝ) := zero_le_two
-
-  -- `1 / 2` is less than `1`
--- HACK: this is needed for the `autogeneralize` algorithm to detect and generalize the `2` in the proof correctly
-lemma one_half_lt_one_ℝ : (1 / (2 : ℝ)) < 1 := one_half_lt_one
-
 theorem complex_sum_convergence
   -- `z` is a sequence of complex numbers
   (z : ℕ → ℂ)
@@ -33,7 +25,7 @@ theorem complex_sum_convergence
     rwa [Nat.add_right_comm]
   -- to show that a sequence is summable, it suffices to show that it's a Cauchy sequence
   rw [@summable_iff_cauchySeq_finset]
-  -- the hypothesis `h` implies that the sequence decays exponentially by a factor of `2` after a point
+  -- the hypothesis `h'` implies that the sequence decays exponentially by a factor of `2` after a point
   let h' : ∀ m : ℕ, ‖z' m‖ ≤ ‖z' 0‖ / (2 : ℝ)^m := by
     intro m
     induction m with
@@ -41,7 +33,7 @@ theorem complex_sum_convergence
     | succ m ih =>
       calc  ‖z' (m + 1)‖
         _ ≤ ‖z' m‖ / 2           := by apply h'
-        _ ≤ (‖z' 0‖ / 2^m) / 2   := by exact div_le_div_of_nonneg_right ih zero_le_two_ℝ
+        _ ≤ (‖z' 0‖ / 2^m) / 2   := by exact div_le_div_of_nonneg_right ih zero_le_two
         _ = ‖z' 0‖ / 2 ^ (m + 1) := by rw [@div_div, @npow_add, @npow_one]
   -- this function is an upper bound for the norms of the sequence
   -- it is sufficient to show the summability of this sequence
@@ -62,16 +54,17 @@ theorem complex_sum_convergence
     -- the sequence `(1 / 2) ^ n` is summable
     apply summable_geometric_of_lt_one
     · rw [@one_div_nonneg]
-      exact zero_le_two_ℝ
-    · exact one_half_lt_one_ℝ
+      exact zero_le_two
+    · exact one_half_lt_one
 
 /--
 info: Successfully generalized ⏎
   complex_sum_convergence ⏎
 to ⏎
   complex_sum_convergence.Gen : ∀ (m : ℝ),
-  0 ≤ m → 1 / m < 1 → ∀ (z : ℕ → ℂ), (∃ N, ∀ n ≥ N, ‖z (n + 1)‖ ≤ ‖z n‖ / m) → Summable z ⏎
-by abstracting 2.
+  (∀ [inst : Preorder ℝ] [inst_1 : ZeroLEOneClass ℝ] [inst_2 : AddLeftMono ℝ], 0 ≤ m) →
+    1 / m < 1 → ∀ (z : ℕ → ℂ), (∃ N, ∀ n ≥ N, ‖z (n + 1)‖ ≤ ‖z n‖ / m) → Summable z ⏎
+by abstracting { cauchy := CauSeq.Completion.mk (CauSeq.const abs (Rat.ofInt (Int.ofNat 2))) }.
 -/
 #guard_msgs in
 example : True := by
