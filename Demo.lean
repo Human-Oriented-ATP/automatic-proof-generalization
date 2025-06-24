@@ -13,8 +13,9 @@ open Lean Elab Tactic Meta Term Command
 set_option pp.showLetValues false
 set_option autoImplicit false
 set_option linter.unusedVariables false
-
-
+-- set_option trace.ProofPrinting true
+set_option trace.Autogeneralize.abstractPattern true
+set_option trace.AntiUnify true
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Generalization of the proof that √17 is irrational
@@ -63,7 +64,7 @@ example
   ∀ (n m : ℕ), Fintype.card α = n → Fintype.card β = m → Fintype.card (α → β) = m ^ n:=
 by
   let fun_set : Fintype.card α = 3 → Fintype.card β = 3 → Fintype.card (α → β) = 3 ^ 3 := by {intros α_card  β_card; rw [Fintype.card_pi, Finset.prod_const]; congr}
-  autogeneralize 3 in fun_set
+  autogeneralize (3 : ℕ) in fun_set
   assumption
 
 
@@ -86,6 +87,25 @@ example : ∀ (n m : ℕ) {α : Type} [Fintype α] [DecidableEq α] (A B : Finse
 
   assumption
 
+-- Bhavik's reformulation
+example : ∀ (n m : ℕ) {α : Type} [Fintype α] [DecidableEq α] (A B : Finset α),
+  A.card = n → B.card = m → (A ∪ B).card ≤ n+m := by
+
+  /- Start with the theorem that |A ∪ B| ≤ 4 when |A|=2 and |B|=2. -/
+  let union_of_finsets
+      {α : Type} [Fintype α] [DecidableEq α] (A B : Finset α) (hA : A.card = 2) (hB : B.card = 2) :
+      (A ∪ B).card ≤ 4 := by calc
+    (A ∪ B).card ≤ (A ∪ B).card + (A ∩ B).card := Nat.le_add_right _ _
+    _ = A.card + B.card := Finset.card_union_add_card_inter _ _
+    _ = 2 + B.card := by rw [hA]
+    _ = 2 + 2 := by rw [hB]
+    _ = 4 := rfl
+
+  /- Find the proof-based generalization, and add it as a theorem in the context. -/
+  autogeneralize (2:ℕ) in union_of_finsets
+
+  assumption
+
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Another demonstration of robust generalization of _dependent_ uses of a constant.
 Generalizing the _4_ below automatically generalizes the _3_.
@@ -101,7 +121,7 @@ example :
   intro n hn
 
   /- Start with the theorem that no 4-vertex graph has degree sequence (1,3,3,3) -/
-  let nonexistent_graph (G : SimpleGraph (Fin 4)) [DecidableRel G.Adj]: ¬(∃ (v : Fin 4), G.degree v = 1 ∧ ∀ w ≠ v, G.degree w = 3) := by { rintro ⟨v, v_deg, w_deg⟩; have hw_card : (Set.toFinset {w : Fin 4 | w ≠ v}).card = 3 := by {rw [Set.toFinset_card]; rw [Set.card_ne_eq]; rewrite [Fintype.card_fin]; rfl}; have neq_imp_adj : {w | w ≠ v} ⊆ {w | G.Adj v w} := by {rw [Set.setOf_subset_setOf]; intro w wneqv; apply max_deg_imp_adj_all; rewrite [Fintype.card_fin]; exact (w_deg w wneqv); exact wneqv.symm}; have v_deg_geq : 3 ≤ G.degree v := by {rw [← SimpleGraph.card_neighborFinset_eq_degree]; rw [← hw_card]; apply Finset.card_le_card; unfold SimpleGraph.neighborFinset; unfold SimpleGraph.neighborSet; rw [@Set.toFinset_subset_toFinset]; exact neq_imp_adj}; rw [v_deg] at v_deg_geq; exact Nat.not_lt.mpr v_deg_geq one_lt_three }
+  let nonexistent_graph (G : SimpleGraph (Fin 4)) [DecidableRel G.Adj]: ¬(∃ (v : Fin 4), G.degree v = 1 ∧ ∀ w ≠ v, G.degree w = 3) := by { rintro ⟨v, v_deg, w_deg⟩; have hw_card : (Set.toFinset {w : Fin 4 | w ≠ v}).card = 3 := by {rw [Set.toFinset_card]; rw [Set.card_ne_eq]; rewrite [Fintype.card_fin]; rfl}; have neq_imp_adj : {w | w ≠ v} ⊆ {w | G.Adj v w} := by {rw [Set.setOf_subset_setOf]; intro w wneqv; apply max_deg_imp_adj_all; rewrite [Fintype.card_fin]; exact (w_deg w wneqv); exact wneqv.symm}; have v_deg_geq : 3 ≤ G.degree v := by {rw [← SimpleGraph.card_neighborFinset_eq_degree]; rw [← hw_card]; apply Finset.card_le_card; unfold SimpleGraph.neighborFinset; unfold SimpleGraph.neighborSet; rw [@Set.toFinset_subset_toFinset]; exact neq_imp_adj}; rw [v_deg] at v_deg_geq; exact Nat.not_lt.mpr v_deg_geq (Nat.one_lt_succ_succ 1) }
 
   /- Find the proof-based generalization, and add it as a theorem in the context. -/
   autogeneralize (4:ℕ) in nonexistent_graph
@@ -144,14 +164,16 @@ example : ∀ (T : Type)        -- If you have an arbitrary type
 := by
 
   /- Start with the theorem that "a + b = a + c" implies "b = c"  -/
-  let cancellation : ∀ a b c : ℤ, a + b = a + c → b = c := by {intros a b c h; replace h : -a + (a + b) = -a + (a + c) := by {rw [h]}; rw [← Int.add_assoc, Int.add_left_neg, ← Int.add_assoc, Int.add_left_neg, Int.zero_add, Int.zero_add] at h; exact h;}
+  -- Here, the only hypothesis specific to the integers is `Int.add_left_neg`
+  let cancellation : ∀ a b c : ℤ, a + b = a + c → b = c := by {intros a b c h; replace h : -a + (a + b) = -a + (a + c) := by {rw [h]}; rw [← add_assoc, ← add_assoc, Int.add_left_neg, zero_add, zero_add] at h; exact h;}
 
   /- Find the proof-based generalization, and add it as a theorem in the context. -/
-  autogeneralize_basic (Add.add) in cancellation
+  autogeneralize_basic (· + · : ℤ → ℤ → ℤ) in cancellation
   autogeneralize (0) as e in cancellation.Gen
-  autogeneralize (ℤ) in cancellation.Gen.Gen
+  autogeneralize ℤ in cancellation.Gen.Gen
 
   assumption
+
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 A demonstration of _generalizing non-numerical constants_ .
 
@@ -168,3 +190,22 @@ example := by
   autogeneralize ℤ in bezout_identity
 
   assumption
+
+theorem test₁ (xs : List Int) : (0 :: xs).reverse = xs.reverse.concat 0 :=
+  List.reverse_cons' 0 xs
+
+example : True := by
+  autogeneralize List.concat in test₁
+  trivial
+
+theorem test₂ (x y : Int) : (x + y)^2 ≡ x^2 + y^2 [ZMOD 2] := by
+  have : (x + y) ^ 2 = x ^ 2 + 2 * x * y + y ^ 2 := add_sq x y
+  have : (x + y)^2 = x^2 + y^2 + 2 * x * y := by
+    rw [this, add_assoc, add_comm (2 * x * y), add_assoc]
+  rw [this, mul_assoc]
+  exact Int.modEq_add_fac_self
+
+set_option maxHeartbeats 2500000 in
+example : True := by
+  autogeneralize 2 in test₂
+  trivial
