@@ -37,3 +37,30 @@ set_option maxHeartbeats 2500000 in
 example : True := by
   autogeneralize 2 in split_squares
   trivial
+
+/- Test that autogeneralize can generalize proofs involving the 'calc' tactic. -/
+example : ∀ (n m : ℕ) {α : Type} [Fintype α] [DecidableEq α] (A B : Finset α),
+  A.card = n → B.card = m → (A ∪ B).card ≤ n+m := by
+
+  let union_of_finsets
+      {α : Type} [Fintype α] [DecidableEq α] (A B : Finset α) (hA : A.card = 2) (hB : B.card = 2) :
+      (A ∪ B).card ≤ 4 := by calc
+    (A ∪ B).card ≤ (A ∪ B).card + (A ∩ B).card := Nat.le_add_right _ _
+    _ = A.card + B.card := Finset.card_union_add_card_inter _ _
+    _ = 2 + B.card := by rw [hA]
+    _ = 2 + 2 := by rw [hB]
+    _ = 4 := rfl
+
+  autogeneralize (2:ℕ) in union_of_finsets
+
+  assumption
+
+/- Test that autogeneralize can generalize parts of proofs not explicitly encoded in lemmas.  -/
+lemma one_lt_three_pow {n : ℕ} (hn : n ≠ 0) : 1 < 3 ^ n := by
+  have hpow_lt : 1 ^ n < 3 ^ n := Nat.pow_lt_pow_left (a := 1) (b := 3) ?_ hn
+  rwa [one_pow] at hpow_lt
+  · exact Nat.one_lt_succ_succ 1 -- 1 < 3
+
+example : ∀ m, 1 < m → ∀ n, n ≠ 0 → 1 < m ^ n := by
+  autogeneralize (3 : ℕ) as m in one_lt_three_pow
+  assumption
