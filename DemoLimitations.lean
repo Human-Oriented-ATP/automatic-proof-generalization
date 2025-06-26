@@ -37,9 +37,7 @@ theorem dvd_left_of_dvd_prod_fixed {a b c : ℤ} (h : a ∣ b) : a ∣ (b * c) :
   rw [hd, mul_assoc]
 
 example : True := by -- this generalization succeeds
-  first -- the `first` tactic combinator runs the first tactic in the sequence that succeeds
-    | autogeneralize ℤ in dvd_left_of_dvd_prod_fixed
-    | dbg_trace "Generalization threw an error"
+  autogeneralize ℤ in dvd_left_of_dvd_prod_fixed
   trivial
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -53,10 +51,23 @@ example : ∀ (n : ℕ), Even (2 * n) := by
   autogeneralize 3 in two_times_three_is_even
   assumption
 
+
 /- An example where "3" doesn't show up in the proof term (due to use of the computation rule reduceMul), so the proof doesn't generalize. -/
 example := by
   let two_times_three_is_even : Even (2*3) := by simp only [Nat.reduceMul]; rw [@Nat.even_iff]
   first -- the `first` tactic combinator runs the first tactic in the sequence that succeeds
     | autogeneralize 3 in two_times_three_is_even -- throws error b/c of computation rule
-    | dbg_trace "Generalization threw an error"
+    | dbg_trace "Generalization threw an error."
+  assumption
+
+/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+GENERALIZING HAVE STATEMENTS
+Demonstration that the tactic can only generalize proofs of `let statements, since Lean doesn't allow us access to the proofs of 'have' statements.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+
+example := by
+  have one_plus_one : 1+1=2 := by simp only [Nat.reduceAdd]
+  first -- the `first` tactic combinator runs the first tactic in the sequence that succeeds
+    | autogeneralize 3 in one_plus_one -- throws error b/c of computation rule
+    | dbg_trace "Generalization threw an error, since it can't access the proof of a 'have' statement."
   assumption
