@@ -130,7 +130,7 @@ def antiUnify (e e' : Expr) : MetaM (Expr × List Mismatch) := do
   let e' ← withReducible <| reduce e' (explicitOnly := false) (skipTypes := false) (skipProofs := false)
   let (result, mismatches) ← antiUnifyCore e e' |>.run (← getLCtx, ← getLocalInstances) |>.run []
   trace[AntiUnify] "All results of anti-unification: {mismatches}"
-  let mismatches := mismatches.filter (fun ⟨_, left, right⟩ ↦ !(left.isMVar && right.isMVar))
+  let mismatches := mismatches.filter (fun ⟨_, left, right⟩ ↦ !(left.isMVar && right.isMVar) && !(left.hasFVar || right.hasFVar))
   trace[AntiUnify] "Filtered results of anti-unification: {mismatches}"
   return (result, mismatches)
 
