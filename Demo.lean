@@ -107,10 +107,9 @@ example : ∀ (n m : ℕ) {α : Type} [Fintype α] [DecidableEq α] (A B : Finse
   assumption
 
 lemma one_lt_three_pow {n : ℕ} (hn : n ≠ 0) : 1 < 3 ^ n := by
-  have hpow_lt := Nat.pow_lt_pow_left (a := 1) (b := 3) ?_ hn
-  rw [one_pow] at hpow_lt
-  assumption
-  · exact Nat.one_lt_succ_succ 1
+  have hpow_lt : 1 ^ n < 3 ^ n := Nat.pow_lt_pow_left (a := 1) (b := 3) ?_ hn
+  rwa [one_pow] at hpow_lt
+  · exact Nat.one_lt_succ_succ 1 -- 1 < 3
 
 example : ∀ m, 1 < m → ∀ n, n ≠ 0 → 1 < m ^ n := by
   autogeneralize (3 : ℕ) in one_lt_three_pow
