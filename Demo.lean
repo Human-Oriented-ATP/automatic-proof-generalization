@@ -112,7 +112,7 @@ lemma one_lt_three_pow {n : ℕ} (hn : n ≠ 0) : 1 < 3 ^ n := by
   · exact Nat.one_lt_succ_succ 1 -- 1 < 3
 
 example : ∀ m, 1 < m → ∀ n, n ≠ 0 → 1 < m ^ n := by
-  autogeneralize (3 : ℕ) in one_lt_three_pow
+  autogeneralize (3 : ℕ) as m in one_lt_three_pow
   assumption
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
