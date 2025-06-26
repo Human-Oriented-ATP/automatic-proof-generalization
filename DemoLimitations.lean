@@ -1,6 +1,6 @@
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Demos where the current implementation produces suboptimal outputs.
-Highlights possibilities for future workk.
+Highlights possibilities for future work.
 - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - -/
 
 import AutomaticProofGeneralization.AutoGeneralizeTactic
@@ -9,14 +9,10 @@ import Mathlib.Tactic
 set_option linter.unusedTactic false
 set_option linter.unreachableTactic false
 
-example : True := by
-  -- a proof of `1 < 3` that does not use `3` anywhere in the proof
-  let one_lt_three : 1 < 3 := Nat.one_lt_succ_succ 1
-  -- the generalized statement produces `1 < 1.succ.succ`
-  -- instead of a more general statement
-  autogeneralize (3 : ℕ) in one_lt_three
-  trivial
-
+/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+GENERALIZING WITH DEFINITIONAL EQUALITY.
+Demonstration that
+- - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - -/
 
 theorem dvd_left_of_dvd_prod {a b c : ℤ} (h : a ∣ b) : a ∣ (b * c) := by
   /- This step is using the fact that `a ∣ b` is defined over the integers as `∃ d, d * a = b`
@@ -41,35 +37,37 @@ theorem dvd_left_of_dvd_prod_fixed {a b c : ℤ} (h : a ∣ b) : a ∣ (b * c) :
   rw [hd, mul_assoc]
 
 example : True := by -- this generalization succeeds
-  first -- the `first` tactic combinator runs the first tactic in the sequence that succeeds
-    | autogeneralize ℤ in dvd_left_of_dvd_prod_fixed
-    | dbg_trace "Generalization threw an error"
+  autogeneralize ℤ in dvd_left_of_dvd_prod_fixed
   trivial
 
-theorem exists_left_id : ∀ (x : ℤ), ∃ (y : ℤ), y + x = x := by
-  intro x
-  exists (0 : ℤ)
-  exact zero_add x
+/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+GENERALIZING WITH COMPUTATION RULES.
+Demonstration that compatible proofs must use deduction rules, not computation rules
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
-example : True := by -- this generalization fails
+/- An example where only deduction rules are used, so the proof generalizes. -/
+example : ∀ (n : ℕ), Even (2 * n) := by
+  let two_times_three_is_even : Even (2*3) := by {unfold Even; apply Exists.intro 3; rw [two_mul]}
+  autogeneralize 3 in two_times_three_is_even
+  assumption
+
+
+/- An example where "3" doesn't show up in the proof term (due to use of the computation rule reduceMul), so the proof doesn't generalize. -/
+example := by
+  let two_times_three_is_even : Even (2*3) := by simp only [Nat.reduceMul]; rw [@Nat.even_iff]
   first -- the `first` tactic combinator runs the first tactic in the sequence that succeeds
-   | autogeneralize ℤ in exists_left_id
-   | dbg_trace "Generalization threw an error"
-  trivial
+    | autogeneralize 3 in two_times_three_is_even -- throws error b/c of computation rule
+    | dbg_trace "Generalization threw an error."
+  assumption
 
-theorem exists_left_id_int : ∀ (x : ℤ), ∃ (y : ℤ), y + x = x := by
-  intro x
-  exists (0 : ℤ)
-  exact Int.zero_add x -- this proof uses the more specific `Int.zero_add`, which does not rely on typeclasses
+/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+GENERALIZING HAVE STATEMENTS
+Demonstration that the tactic can only generalize proofs of `let statements, since Lean doesn't allow us access to the proofs of 'have' statements.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
-example : True := by -- this generalization succeeds
+example := by
+  have one_plus_one : 1+1=2 := by simp only [Nat.reduceAdd]
   first -- the `first` tactic combinator runs the first tactic in the sequence that succeeds
-   | autogeneralize ℤ in exists_left_id_int
-   | dbg_trace "Generalization threw an error"
-  trivial
-
--- This would be an ideal generalization of `exists_left_id`
-theorem exists_left_id_gen {T} [AddGroup T] : ∀ (x : T), ∃ (y : T), y + x = x := by
-  intro x
-  exists (0 : T)
-  exact zero_add x
+    | autogeneralize 3 in one_plus_one -- throws error b/c of computation rule
+    | dbg_trace "Generalization threw an error, since it can't access the proof of a 'have' statement."
+  assumption

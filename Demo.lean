@@ -87,34 +87,6 @@ example : ∀ (n m : ℕ) {α : Type} [Fintype α] [DecidableEq α] (A B : Finse
 
   assumption
 
--- Bhavik's reformulation
-example : ∀ (n m : ℕ) {α : Type} [Fintype α] [DecidableEq α] (A B : Finset α),
-  A.card = n → B.card = m → (A ∪ B).card ≤ n+m := by
-
-  /- Start with the theorem that |A ∪ B| ≤ 4 when |A|=2 and |B|=2. -/
-  let union_of_finsets
-      {α : Type} [Fintype α] [DecidableEq α] (A B : Finset α) (hA : A.card = 2) (hB : B.card = 2) :
-      (A ∪ B).card ≤ 4 := by calc
-    (A ∪ B).card ≤ (A ∪ B).card + (A ∩ B).card := Nat.le_add_right _ _
-    _ = A.card + B.card := Finset.card_union_add_card_inter _ _
-    _ = 2 + B.card := by rw [hA]
-    _ = 2 + 2 := by rw [hB]
-    _ = 4 := rfl
-
-  /- Find the proof-based generalization, and add it as a theorem in the context. -/
-  autogeneralize (2:ℕ) in union_of_finsets
-
-  assumption
-
-lemma one_lt_three_pow {n : ℕ} (hn : n ≠ 0) : 1 < 3 ^ n := by
-  have hpow_lt : 1 ^ n < 3 ^ n := Nat.pow_lt_pow_left (a := 1) (b := 3) ?_ hn
-  rwa [one_pow] at hpow_lt
-  · exact Nat.one_lt_succ_succ 1 -- 1 < 3
-
-example : ∀ m, 1 < m → ∀ n, n ≠ 0 → 1 < m ^ n := by
-  autogeneralize (3 : ℕ) as m in one_lt_three_pow
-  assumption
-
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Another demonstration of robust generalization of _dependent_ uses of a constant.
 Generalizing the _4_ below automatically generalizes the _3_.
@@ -199,22 +171,3 @@ example := by
   autogeneralize ℤ in bezout_identity
 
   assumption
-
-theorem test₁ (xs : List Int) : (0 :: xs).reverse = xs.reverse.concat 0 :=
-  List.reverse_cons' 0 xs
-
-example : True := by
-  autogeneralize List.concat in test₁
-  trivial
-
-theorem test₂ (x y : Int) : (x + y)^2 ≡ x^2 + y^2 [ZMOD 2] := by
-  have : (x + y) ^ 2 = x ^ 2 + 2 * x * y + y ^ 2 := add_sq x y
-  have : (x + y)^2 = x^2 + y^2 + 2 * x * y := by
-    rw [this, add_assoc, add_comm (2 * x * y), add_assoc]
-  rw [this, mul_assoc]
-  exact Int.modEq_add_fac_self
-
-set_option maxHeartbeats 2500000 in
-example : True := by
-  autogeneralize 2 in test₂
-  trivial
