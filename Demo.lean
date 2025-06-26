@@ -200,22 +200,3 @@ example := by
   autogeneralize ℤ in bezout_identity
 
   assumption
-
-theorem test₁ (xs : List Int) : (0 :: xs).reverse = xs.reverse.concat 0 :=
-  List.reverse_cons' 0 xs
-
-example : True := by
-  autogeneralize List.concat in test₁
-  trivial
-
-theorem test₂ (x y : Int) : (x + y)^2 ≡ x^2 + y^2 [ZMOD 2] := by
-  have : (x + y) ^ 2 = x ^ 2 + 2 * x * y + y ^ 2 := add_sq x y
-  have : (x + y)^2 = x^2 + y^2 + 2 * x * y := by
-    rw [this, add_assoc, add_comm (2 * x * y), add_assoc]
-  rw [this, mul_assoc]
-  exact Int.modEq_add_fac_self
-
-set_option maxHeartbeats 2500000 in
-example : True := by
-  autogeneralize 2 in test₂
-  trivial
