@@ -13,9 +13,12 @@ initialize
 
 /-- Generalize a term in a theorem to an arbitrary constant of its type, adding in necessary hypotheses along the way -/
 def autogeneralize (thmName : Name) (pattern : Expr) (customName? : Option Name := none) (occs : Occurrences := .all) (consolidate : Bool := false) : TacticM Unit := withMainContext do
-  -- Get details about the un-generalized proof we're going to generalize
+
+-- Get details about the un-generalized proof we're going to generalize
   let (thmType, thmProof) ← getTheoremAndProof thmName
-  trace[ProofPrinting] m!"Initial Proof: { thmProof}"
+  trace[ProofPrinting] m!"Initial Proof (Stage 0): { thmProof}"
+
+  trace[ProofPrinting] m!"We are abstracting the following constant: {pattern}"
 
   -- Get the generalized theorem (replace instances of pattern with mvars)
   let mut genThmProof := thmProof
@@ -24,15 +27,16 @@ def autogeneralize (thmName : Name) (pattern : Expr) (customName? : Option Name 
 
   -- Generalize all constants that `pattern` has dependencies on, and then generalize `pattern`
   dependenciesToGeneralize := dependenciesToGeneralize.eraseDups
-  trace[ProofPrinting] m!"We are abstracting the following constants: { dependenciesToGeneralize}"
+  trace[ProofPrinting] m!"We have identified the following additional constants to generalize: { dependenciesToGeneralize}"
   for dep in dependenciesToGeneralize do
     genThmProof ← replacePatternWithMVars genThmProof dep |>.run'
 
-  trace[ProofPrinting] m!"Generalized Proof After Abstraction: {genThmProof}"
+  trace[ProofPrinting] m!"Generalized Proof After Abstraction (Stages 1 & 2 & 3): {genThmProof}"
+
 
   -- Consolidate mvars within proof term by running a typecheck
   genThmProof ← consolidateWithTypecheck genThmProof
-  trace[ProofPrinting] m!"Generalized Proof After Typecheck: {genThmProof}"
+  trace[ProofPrinting] m!"Generalized Proof After Typecheck (Stage 4): {genThmProof}"
   let genThmType ← inferType genThmProof
 
   -- Re-specialize the occurrences of the pattern we are not interested in
@@ -49,14 +53,16 @@ def autogeneralize (thmName : Name) (pattern : Expr) (customName? : Option Name 
 
   -- Give the meta-variables in the proof more human-readable names
   relabelMVarsIn genThmProof customName?
-  trace[ProofPrinting] m!"Generalized Proof After Renaming: {genThmProof}"
+  -- trace[ProofPrinting] m!"Generalized Proof After Renaming: {genThmProof}"
 
   -- Pull out the holes (the abstracted term & all hypotheses on it) into a chained implication.
   genThmProof ←  pullOutMissingHolesAsHypotheses genThmProof
   let genThmType ← inferType genThmProof
+  trace[ProofPrinting] m!"Generalized Proof After Pulling Out Holes as Hypotheses (Stage 5): {genThmProof}"
 
   -- Add the generalized theorem to the context.
   createLetHypothesis genThmType genThmProof (thmName++`Gen)
+  trace[ProofPrinting] m!"Generalized Theorem Statement (Stage 6): {genThmType}"
 
   logInfo m!"Successfully generalized \n  {thmName} \nto \n  {thmName++`Gen} : {genThmType} \nby abstracting {← ppExpr pattern}."
 

@@ -14,8 +14,8 @@ set_option pp.showLetValues false
 set_option autoImplicit false
 set_option linter.unusedVariables false
 -- set_option trace.ProofPrinting true
-set_option trace.Autogeneralize.abstractPattern true
-set_option trace.AntiUnify true
+-- set_option trace.Autogeneralize.abstractPattern true
+-- set_option trace.AntiUnify true
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Generalization of the proof that √17 is irrational
