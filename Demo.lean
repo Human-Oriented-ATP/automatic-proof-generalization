@@ -111,6 +111,24 @@ example :
   apply nonexistent_graph.Gen n (Nat.lt_sub_of_add_lt hn)
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+A demonstration of robust generalization involving abstracting _composite hypotheses_.
+When `3` is generalized in the proof below, the algorithm generates a hypothesis `1 < m`
+even though the fact `1 < 3` does not occur in directly the proof in the form of a lemma
+(but rather, a composite term involving the lemma one_lt_succ_succ applied to the argument 1).
+
+Generalization of the proof that `1 < 3 ^ n` for `n ≠ 0`
+to a proof that `1 < m ^ n` for `n ≠ 0` and `m > 1`.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+example : ∀ m, 1 < m → ∀ n, n ≠ 0 → 1 < m ^ n := by
+  let one_lt_three_pow {n : ℕ} (hn : n ≠ 0) : 1 < 3 ^ n := by
+    have hpow_lt : 1 ^ n < 3 ^ n := Nat.pow_lt_pow_left (a := 1) (b := 3) ?_ hn
+    rwa [one_pow] at hpow_lt
+    · exact Nat.one_lt_succ_succ 1 -- 1 < 3
+  autogeneralize (3 : ℕ) as m in one_lt_three_pow
+  assumption
+
+
+/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 A demonstration of the _occurrences_ flag in the generalization tactic.
 Only the first occurence of _17_ below is generalized.
 
@@ -126,22 +144,6 @@ example: ∀ (p : ℕ), Nat.Prime p → Irrational (√p + 17) := by
   /- Find the proof-based generalization, and add it as a theorem in the context. -/
   autogeneralize (17:ℕ) in irrat_sum_sqrt at occurrences [1]
 
-  assumption
-
-/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-A demonstration of robust generalization involving abstracting _non-trivial hypotheses_.
-When `3` is generalized in the proof below, the algorithm generates a hypothesis `1 < m`
-even though the fact `1 < 3` does not occur in directly the proof in the form of a lemma.
-
-Generalization of the proof that `1 < 3 ^ n` for `n ≠ 0`
-to a proof that `1 < m ^ n` for `n ≠ 0` and `m > 1`.
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
-example : ∀ m, 1 < m → ∀ n, n ≠ 0 → 1 < m ^ n := by
-  let one_lt_three_pow {n : ℕ} (hn : n ≠ 0) : 1 < 3 ^ n := by
-    have hpow_lt : 1 ^ n < 3 ^ n := Nat.pow_lt_pow_left (a := 1) (b := 3) ?_ hn
-    rwa [one_pow] at hpow_lt
-    · exact Nat.one_lt_succ_succ 1 -- 1 < 3
-  autogeneralize (3 : ℕ) as m in one_lt_three_pow
   assumption
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
