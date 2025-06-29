@@ -38,7 +38,7 @@ example : True := by
   autogeneralize 2 in split_squares
   trivial
 
-/- Test that autogeneralize can generalize proofs involving the 'calc' tactic. -/
+/- Test that autogeneralize can generalize proofs involving related constants (this version of the example was suggested by Bhavik Mehta). -/
 example : ∀ (n m : ℕ) {α : Type} [Fintype α] [DecidableEq α] (A B : Finset α),
   A.card = n → B.card = m → (A ∪ B).card ≤ n+m := by
 
