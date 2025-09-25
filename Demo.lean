@@ -3,9 +3,10 @@ Demos of proof generalization tactic in Lean
 - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - -/
 import AutomaticProofGeneralization.AutoGeneralizeTactic
 import AutomaticProofGeneralization.Formalizations.irrationality_of_sqrts
-import AutomaticProofGeneralization.Formalizations.finset_union
 import AutomaticProofGeneralization.Formalizations.set_mappings
+import AutomaticProofGeneralization.Formalizations.finset_union
 import AutomaticProofGeneralization.Formalizations.impossible_graphs
+import AutomaticProofGeneralization.Formalizations.addition_cancellation
 import AutomaticProofGeneralization.Formalizations.bezout_identity
 
 open Autogeneralize
@@ -105,19 +106,19 @@ Generalization of the proof that no 4-vertex graph has degree sequence (1,3,3,3)
 to the proof that no n-vertex graph has degree sequence (1, n-1, n-1, ..., n-1) when n > 2
 (Note that when n=2, a graph with degree sequence (1,1) exists)
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+/- Start with the theorem that no 4-vertex graph has degree sequence (1,3,3,3) -/
+#check impossible_graph
+
 example :
   ∀ (n : ℕ), 2 < n → ∀ (G : SimpleGraph (Fin n)) [DecidableRel G.Adj],
   ¬(∃ v, G.degree v = 1 ∧ ∀ (w : Fin n), w ≠ v → G.degree w = n - 1) :=
 by
   intro n hn
 
-  /- Start with the theorem that no 4-vertex graph has degree sequence (1,3,3,3) -/
-  let nonexistent_graph (G : SimpleGraph (Fin 4)) [DecidableRel G.Adj]: ¬(∃ (v : Fin 4), G.degree v = 1 ∧ ∀ w ≠ v, G.degree w = 3) := by { rintro ⟨v, v_deg, w_deg⟩; have hw_card : (Set.toFinset {w : Fin 4 | w ≠ v}).card = 3 := by {rw [Set.toFinset_card]; rw [Set.card_ne_eq]; rewrite [Fintype.card_fin]; rfl}; have neq_imp_adj : {w | w ≠ v} ⊆ {w | G.Adj v w} := by {rw [Set.setOf_subset_setOf]; intro w wneqv; apply max_deg_imp_adj_all; rewrite [Fintype.card_fin]; exact (w_deg w wneqv); exact wneqv.symm}; have v_deg_geq : 3 ≤ G.degree v := by {rw [← SimpleGraph.card_neighborFinset_eq_degree]; rw [← hw_card]; apply Finset.card_le_card; unfold SimpleGraph.neighborFinset; unfold SimpleGraph.neighborSet; rw [@Set.toFinset_subset_toFinset]; exact neq_imp_adj}; rw [v_deg] at v_deg_geq; exact Nat.not_lt.mpr v_deg_geq (Nat.one_lt_succ_succ 1) }
-
   /- Find the proof-based generalization, and add it as a theorem in the context. -/
-  autogeneralize (4:ℕ) in nonexistent_graph
+  autogeneralize (4:ℕ) in impossible_graph
 
-  apply nonexistent_graph.Gen n (Nat.lt_sub_of_add_lt hn)
+  apply impossible_graph.Gen n (Nat.lt_sub_of_add_lt hn)
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 A demonstration of robust generalization involving abstracting _composite hypotheses_.
@@ -130,11 +131,16 @@ to a proof that `1 < m ^ n` for `n ≠ 0` and `m > 1`.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 example : ∀ m, 1 < m → ∀ n, n ≠ 0 → 1 < m ^ n :=
 by
+
+  /- Start with the proof that `1 < 3 ^ n` for `n ≠ 0`. -/
   let one_lt_three_pow {n : ℕ} (hn : n ≠ 0) : 1 < 3 ^ n := by
     have hpow_lt : 1 ^ n < 3 ^ n := Nat.pow_lt_pow_left (a := 1) (b := 3) ?_ hn
     rwa [one_pow] at hpow_lt
     · exact Nat.one_lt_succ_succ 1 -- 1 < 3
+
+  /- Find the proof-based generalization. -/
   autogeneralize (3 : ℕ) as m in one_lt_three_pow
+
   assumption
 
 
@@ -149,10 +155,7 @@ to the proof that √p+17 is irrational for any prime p.
 example: ∀ (p : ℕ), Nat.Prime p → Irrational (√p + 17) :=
 by
 
-  /- Start with the theorem that √17 is irrational. -/
-  let irrat_sum_sqrt : Irrational (sqrt (17:ℕ)+(17:ℕ)) := by {apply Irrational.add_nat; apply irrat_def; intros h; obtain ⟨a, b, ⟨copr, h⟩⟩ := h; have a_div : 17 ∣ a := by {have c := (Nat.Prime.dvd_mul (prime_seventeen)).mp ((by apply (Iff.mpr dvd_iff_exists_eq_mul_right); use (b*b); rw [← mul_assoc]; rw [h];): 17 ∣ a*a); cases c; assumption; assumption}; have a_is_pk : ∃ k, a = 17 * k := by {apply (Iff.mp dvd_iff_exists_eq_mul_right) a_div}; obtain ⟨k, hk⟩ := a_is_pk; rw [hk] at h; replace h := Eq.symm h; rw [mul_assoc] at h; rw [mul_assoc] at h; rw [mul_comm 17 k] at h; rw [mul_eq_mul_left_iff] at h; rw [← mul_assoc k k 17] at h; have := Nat.Prime.ne_zero prime_seventeen; cases h with | inl => have b_div : 17 ∣ b := by {have c := (Nat.Prime.dvd_mul (prime_seventeen)).mp ((by apply (Iff.mpr dvd_iff_exists_eq_mul_left); use (k*k))); cases c; assumption; assumption}; have p_dvd_gcd : 17 ∣ Nat.gcd a b := by {apply Iff.mpr Nat.dvd_gcd_iff ⟨a_div, b_div⟩}; clear a_div b_div; rw [copr] at p_dvd_gcd; apply Nat.Prime.not_dvd_one (prime_seventeen) p_dvd_gcd | inr => apply this; assumption}
-
-  /- Find the proof-based generalization, and add it as a theorem in the context. -/
+  /- Only generalize the 17 under the square root. -/
   autogeneralize (17:ℕ) in irrat_sum_sqrt at occurrences [1]
 
   assumption
@@ -164,6 +167,10 @@ Generalization of the addition operation _+_ in a proof adapted from mathlib's `
 to a general binary function with certain properties.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
+/- Start with the theorem that "a + b = a + c" implies "b = c"
+Here, the only hypothesis specific to the integers is `Int.add_left_neg` -/
+#check cancellation
+
 example : ∀ (T : Type)        -- If you have an arbitrary type
   [inverse : Neg T]           -- with a symbol representing the inverse,
   (e : T)                     -- and a symbol representing the identity,
@@ -173,10 +180,6 @@ example : ∀ (T : Type)        -- If you have an arbitrary type
   (∀ (a b c : T), f (f a b) c = f a (f b c)) → -- and the operation is associative,
   ∀ (a b c : T), f a b = f a c → b = c -- then the operation is left-cancellative.
 := by
-
-  /- Start with the theorem that "a + b = a + c" implies "b = c"  -/
-  -- Here, the only hypothesis specific to the integers is `Int.add_left_neg`
-  let cancellation : ∀ a b c : ℤ, a + b = a + c → b = c := by {intros a b c h; replace h : -a + (a + b) = -a + (a + c) := by {rw [h]}; rw [← add_assoc, ← add_assoc, Int.add_left_neg, zero_add, zero_add] at h; exact h;}
 
   /- Find the proof-based generalization, and add it as a theorem in the context. -/
   autogeneralize_basic (· + · : ℤ → ℤ → ℤ) in cancellation
