@@ -40,3 +40,116 @@ theorem irrat_def (n: ℕ) : (¬ ∃ a b : ℕ, Nat.gcd a b = 1 ∧ a*a = (n: �
   rw [num_abs_eq_num] at x_sq; clear num_abs_eq_num x_num_pos
   rw [mul_assoc n x.den x.den]
   apply_mod_cast x_sq
+
+theorem irrat_sqrt : Irrational (√17) := by
+  apply irrat_def
+  intros h
+  obtain ⟨a, b, ⟨copr, h⟩⟩ := h
+
+  -- Show 17 ∣ a
+  have a_div : 17 ∣ a := by
+    have c := (Nat.Prime.dvd_mul (prime_seventeen)).mp
+      (by
+        apply (Iff.mpr dvd_iff_exists_eq_mul_right)
+        use (b*b)
+        rw [← mul_assoc]
+        rw [h]
+      : 17 ∣ a*a)
+    cases c
+    case inl h₁ => assumption
+    case inr h₂ => assumption
+
+  -- a = 17 * k for some k
+  have a_is_pk : ∃ k, a = 17 * k := by
+    apply (Iff.mp dvd_iff_exists_eq_mul_right) a_div
+
+  obtain ⟨k, hk⟩ := a_is_pk
+  rw [hk] at h
+  replace h := Eq.symm h
+  rw [mul_assoc] at h
+  rw [mul_assoc] at h
+  rw [mul_comm 17 k] at h
+  rw [mul_eq_mul_left_iff] at h
+  rw [← mul_assoc k k 17] at h
+
+  have nz := Nat.Prime.ne_zero prime_seventeen
+  cases h with
+  | inl =>
+      -- Show 17 ∣ b
+      have b_div : 17 ∣ b := by
+        have c := (Nat.Prime.dvd_mul (prime_seventeen)).mp
+          (by
+            apply (Iff.mpr dvd_iff_exists_eq_mul_left)
+            use (k*k)
+          )
+        cases c
+        case inl h₁ => assumption
+        case inr h₂ => assumption
+
+      -- 17 ∣ gcd a b
+      have p_dvd_gcd : 17 ∣ Nat.gcd a b := by
+        apply Iff.mpr Nat.dvd_gcd_iff ⟨a_div, b_div⟩
+
+      clear a_div b_div
+      rw [copr] at p_dvd_gcd
+      apply Nat.Prime.not_dvd_one (prime_seventeen) p_dvd_gcd
+  | inr =>
+      apply nz
+      assumption
+
+theorem irrat_sum_sqrt : Irrational (sqrt (17:ℕ) + 17) := by
+  apply Irrational.add_nat
+  apply irrat_def
+  intros h
+  obtain ⟨a, b, ⟨copr, h⟩⟩ := h
+
+  -- Show 17 ∣ a
+  have a_div : 17 ∣ a := by
+    have c := (Nat.Prime.dvd_mul (prime_seventeen)).mp
+      (by
+        apply (Iff.mpr dvd_iff_exists_eq_mul_right)
+        use (b*b)
+        rw [← mul_assoc]
+        rw [h]
+      : 17 ∣ a*a)
+    cases c
+    case inl h₁ => assumption
+    case inr h₂ => assumption
+
+  -- a = 17 * k for some k
+  have a_is_pk : ∃ k, a = 17 * k := by
+    apply (Iff.mp dvd_iff_exists_eq_mul_right) a_div
+
+  obtain ⟨k, hk⟩ := a_is_pk
+  rw [hk] at h
+  replace h := Eq.symm h
+  rw [mul_assoc] at h
+  rw [mul_assoc] at h
+  rw [mul_comm 17 k] at h
+  rw [mul_eq_mul_left_iff] at h
+  rw [← mul_assoc k k 17] at h
+
+  have nz := Nat.Prime.ne_zero prime_seventeen
+  cases h with
+  | inl =>
+      -- Show 17 ∣ b
+      have b_div : 17 ∣ b := by
+        have c := (Nat.Prime.dvd_mul (prime_seventeen)).mp
+          (by
+            apply (Iff.mpr dvd_iff_exists_eq_mul_left)
+            use (k*k)
+          )
+        cases c
+        case inl h₁ => assumption
+        case inr h₂ => assumption
+
+      -- 17 ∣ gcd a b
+      have p_dvd_gcd : 17 ∣ Nat.gcd a b := by
+        apply Iff.mpr Nat.dvd_gcd_iff ⟨a_div, b_div⟩
+
+      clear a_div b_div
+      rw [copr] at p_dvd_gcd
+      apply Nat.Prime.not_dvd_one (prime_seventeen) p_dvd_gcd
+  | inr =>
+      apply nz
+      assumption
