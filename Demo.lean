@@ -3,6 +3,8 @@ Demos of proof generalization tactic in Lean
 - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - -/
 import AutomaticProofGeneralization.AutoGeneralizeTactic
 import AutomaticProofGeneralization.Formalizations.irrationality_of_sqrts
+import AutomaticProofGeneralization.Formalizations.finset_union
+import AutomaticProofGeneralization.Formalizations.set_mappings
 import AutomaticProofGeneralization.Formalizations.impossible_graphs
 import AutomaticProofGeneralization.Formalizations.bezout_identity
 
@@ -25,7 +27,8 @@ to the proof that the square root of any prime is irrational.
 /- Start with the theorem that √17 is irrational. -/
 #check irrat_sqrt
 
-example : ∀ (p : ℕ), Nat.Prime p → Irrational √p := by
+example : ∀ (p : ℕ), Nat.Prime p → Irrational √p :=
+by
 
   /- Find the proof-based generalization of 17 to any prime, and add it as a theorem in the context. -/
   autogeneralize (17:ℕ) in irrat_sqrt
@@ -43,7 +46,8 @@ to the proof that √p+n is irrational for any prime p and nat n.
 /- Start with the theorem that √17 + 17 is irrational. -/
 #check irrat_sum_sqrt
 
-example: ∀ (p n : ℕ), Nat.Prime p → Irrational (√p + n) := by
+example: ∀ (p n : ℕ), Nat.Prime p → Irrational (√p + n) :=
+by
   intros p n p_prime
 
   /- Find the proof-based generalization, and add it as a theorem in the context. -/
@@ -59,14 +63,18 @@ Generalization of the proof that that are 3^3 functions from a set A of size 3 t
 to the proof that there are m^n functions from a set A of size n to a set B of size m.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
-example
-  {α β : Type} [inst : Fintype α] [inst_1 : Fintype β] [inst_2 : DecidableEq α]:
-  ∀ (n m : ℕ), Fintype.card α = n → Fintype.card β = m → Fintype.card (α → β) = m ^ n:=
-by
-  let fun_set : Fintype.card α = 3 → Fintype.card β = 3 → Fintype.card (α → β) = 3 ^ 3 := by {intros α_card  β_card; rw [Fintype.card_pi, Finset.prod_const]; congr}
-  autogeneralize (3 : ℕ) in fun_set
-  assumption
+/- Start with the theorem that there are 3^3 mappings from a set of size 3 to a set of size 3. -/
+#check fun_set
 
+example :
+  ∀ (n m : ℕ) {α β : Type} [inst : Fintype α] [inst_1 : Fintype β] [inst_2 : DecidableEq α],
+  Fintype.card α = n → Fintype.card β = m → Fintype.card (α → β) = m ^ n :=
+by
+
+  /- Find the proof-based generalization, and add it as a theorem in the context. -/
+  autogeneralize (3 : ℕ) in fun_set
+
+  assumption
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 A demonstration of robust generalization of _dependent_ uses of a constant.
@@ -76,17 +84,18 @@ Generalization of the proof that |A ∪ B| ≤ 4 when |A|=2 and |B|=2
 to the proof that |A ∪ B| ≤ n+m when |A|=n and |B|=m
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
-example : ∀ (n m : ℕ) {α : Type} [Fintype α] [DecidableEq α] (A B : Finset α),
-  A.card = n → B.card = m → (A ∪ B).card ≤ n+m:= by
+/- Start with the theorem that |A ∪ B| ≤ 4 when |A|=2 and |B|=2. -/
+#check union_of_finsets
 
-  /- Start with the theorem that |A ∪ B| ≤ 4 when |A|=2 and |B|=2. -/
-  let union_of_finsets {α : Type} [Fintype α] [DecidableEq α] (A B : Finset α) (hA : A.card = 2) (hB : B.card = 2) : (A ∪ B).card ≤ 4 := by apply hA ▸ hB ▸ Finset.card_union_add_card_inter A B ▸ Nat.le_add_right _ _
+example :
+  ∀ (n m : ℕ) {α : Type} [Fintype α] [DecidableEq α] (A B : Finset α),
+  A.card = n → B.card = m → (A ∪ B).card ≤ n+m :=
+by
 
   /- Find the proof-based generalization, and add it as a theorem in the context. -/
   autogeneralize (2:ℕ) in union_of_finsets
 
   assumption
-
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Another demonstration of robust generalization of _dependent_ uses of a constant.
@@ -98,8 +107,8 @@ to the proof that no n-vertex graph has degree sequence (1, n-1, n-1, ..., n-1) 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 example :
   ∀ (n : ℕ), 2 < n → ∀ (G : SimpleGraph (Fin n)) [DecidableRel G.Adj],
-  ¬(∃ v, G.degree v = 1 ∧ ∀ (w : Fin n), w ≠ v → G.degree w = n - 1)
-:= by
+  ¬(∃ v, G.degree v = 1 ∧ ∀ (w : Fin n), w ≠ v → G.degree w = n - 1) :=
+by
   intro n hn
 
   /- Start with the theorem that no 4-vertex graph has degree sequence (1,3,3,3) -/
@@ -119,7 +128,8 @@ even though the fact `1 < 3` does not occur in directly the proof in the form of
 Generalization of the proof that `1 < 3 ^ n` for `n ≠ 0`
 to a proof that `1 < m ^ n` for `n ≠ 0` and `m > 1`.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
-example : ∀ m, 1 < m → ∀ n, n ≠ 0 → 1 < m ^ n := by
+example : ∀ m, 1 < m → ∀ n, n ≠ 0 → 1 < m ^ n :=
+by
   let one_lt_three_pow {n : ℕ} (hn : n ≠ 0) : 1 < 3 ^ n := by
     have hpow_lt : 1 ^ n < 3 ^ n := Nat.pow_lt_pow_left (a := 1) (b := 3) ?_ hn
     rwa [one_pow] at hpow_lt
@@ -136,7 +146,8 @@ Generalization of the proof that √17+17 is irrational
 to the proof that √p+17 is irrational for any prime p.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
-example: ∀ (p : ℕ), Nat.Prime p → Irrational (√p + 17) := by
+example: ∀ (p : ℕ), Nat.Prime p → Irrational (√p + 17) :=
+by
 
   /- Start with the theorem that √17 is irrational. -/
   let irrat_sum_sqrt : Irrational (sqrt (17:ℕ)+(17:ℕ)) := by {apply Irrational.add_nat; apply irrat_def; intros h; obtain ⟨a, b, ⟨copr, h⟩⟩ := h; have a_div : 17 ∣ a := by {have c := (Nat.Prime.dvd_mul (prime_seventeen)).mp ((by apply (Iff.mpr dvd_iff_exists_eq_mul_right); use (b*b); rw [← mul_assoc]; rw [h];): 17 ∣ a*a); cases c; assumption; assumption}; have a_is_pk : ∃ k, a = 17 * k := by {apply (Iff.mp dvd_iff_exists_eq_mul_right) a_div}; obtain ⟨k, hk⟩ := a_is_pk; rw [hk] at h; replace h := Eq.symm h; rw [mul_assoc] at h; rw [mul_assoc] at h; rw [mul_comm 17 k] at h; rw [mul_eq_mul_left_iff] at h; rw [← mul_assoc k k 17] at h; have := Nat.Prime.ne_zero prime_seventeen; cases h with | inl => have b_div : 17 ∣ b := by {have c := (Nat.Prime.dvd_mul (prime_seventeen)).mp ((by apply (Iff.mpr dvd_iff_exists_eq_mul_left); use (k*k))); cases c; assumption; assumption}; have p_dvd_gcd : 17 ∣ Nat.gcd a b := by {apply Iff.mpr Nat.dvd_gcd_iff ⟨a_div, b_div⟩}; clear a_div b_div; rw [copr] at p_dvd_gcd; apply Nat.Prime.not_dvd_one (prime_seventeen) p_dvd_gcd | inr => apply this; assumption}
