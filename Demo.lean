@@ -158,6 +158,7 @@ to an arbitrary Euclidean domain.
  /- Start with Bezout's identity in the integers -/
 #check bezout_identity
 
+set_option maxHeartbeats 250000 in
 example := by
 
   /- Find the proof-based generalization, and add it as a theorem in the context. -/

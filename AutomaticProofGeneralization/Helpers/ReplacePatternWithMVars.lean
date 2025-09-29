@@ -44,7 +44,7 @@ structure ReplaceM.Context where
   /-- The current recursion depth of the function. -/
   depth : Nat := 0
   /-- The maximum cutoff recursion depth of the function. -/
-  cutOffDepth : Nat := 2
+  cutOffDepth : Nat := 3
 
 /-- The stateful part of the `ReplaceM` monad. -/
 structure ReplaceM.State where
@@ -192,6 +192,9 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) : ReplaceM Expr := do
           let some e'TypeAbs ←
             withReturnIfModified <| withIncDepth <| withoutAbstractingHypsOrGeneralizingConstants <|
               visit e'Type | return e'
+          -- the previous pass on `e'Type` visited without abstracting hypotheses in `e'Type` for efficiency reasons
+          -- if occurrences of the pattern are detected in the type, visit it again, this time with all options enabled
+          let e'TypeAbs ← withIncDepth <| visit e'Type
           trace[Autogeneralize.abstractPattern] m!"⭐ Generating hypothesis {e'TypeAbs}"
           mkExprMVar e'TypeAbs -- mvar for generalized hypothesis
             -- (userName := mkAbstractedName n)
