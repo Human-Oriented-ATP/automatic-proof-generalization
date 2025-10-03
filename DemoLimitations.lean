@@ -11,7 +11,7 @@ set_option linter.unreachableTactic false
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 GENERALIZING WITH DEFINITIONAL EQUALITY.
-Demonstration that
+Demonstration that if the definitions of symbols are not explicitly in the proof, we have no way to determine which are used.
 - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - -/
 
 theorem dvd_left_of_dvd_prod {a b c : ℤ} (h : a ∣ b) : a ∣ (b * c) := by
@@ -42,7 +42,7 @@ example : True := by -- this generalization succeeds
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 GENERALIZING WITH COMPUTATION RULES.
-Demonstration that compatible proofs must use deduction rules, not computation rules
+Demonstration that compatible proofs must use deduction rules, not computation rules.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
 /- An example where only deduction rules are used, so the proof generalizes. -/
