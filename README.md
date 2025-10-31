@@ -1,6 +1,6 @@
 # Automatic Proof Generalization
 
-This is supplementary material for the ITP 2025 submission _Automatically Generalizing Proofs and Statements_ containing a Lean implementation of the automatic proof generalization algorithm.
+This is supplementary material for the [ITP 2025 paper _Automatically Generalizing Proofs and Statements_](https://drops.dagstuhl.de/storage/00lipics/lipics-vol352-itp2025/LIPIcs.ITP.2025.12/LIPIcs.ITP.2025.12.pdf) containing a Lean implementation of the automatic proof generalization algorithm.
 
 ## Installation
 
