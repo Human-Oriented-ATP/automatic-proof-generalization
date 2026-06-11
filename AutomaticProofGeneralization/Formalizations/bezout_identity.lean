@@ -51,7 +51,7 @@ theorem bezout_identity : ∀ (x y : ℤ), y ≠ 0 → ∃ (h k : ℤ), isGCD (h
   have hB_nonempty : ∃ b : ℕ, b ∈ B := by
     use (0*x + 1*y).natAbs
     change (0*x + 1*y).natAbs ∈ Int.natAbs '' A \ {0}
-    rw [Set.mem_diff_singleton]
+    rw [Set.mem_sdiff_singleton]
     constructor
     · apply Set.mem_image_of_mem Int.natAbs
       use (discharger := rfl) 0, 1
@@ -81,7 +81,7 @@ theorem bezout_identity : ∀ (x y : ℤ), y ≠ 0 → ∃ (h k : ℤ), isGCD (h
     -- By division algorithm, a = qd + r for some q,r with 0 ≤ r < d
     let q := a / d
     let r := a % d
-    have a_eq_quotRem : a = q*d + r := Eq.symm (Int.ediv_add_emod' a d)
+    have a_eq_quotRem : a = q*d + r := Eq.symm (Int.ediv_mul_add_emod a d)
     -- Express r in terms of a and d
     have r_eq : r = (-q)*d + a := by
       rw [← neg_add_eq_iff_eq_add, Int.neg_mul_eq_neg_mul] at a_eq_quotRem
@@ -105,7 +105,7 @@ theorem bezout_identity : ∀ (x y : ℤ), y ≠ 0 → ∃ (h k : ℤ), isGCD (h
     · -- If r is non-zero, then since r < d, and d is meant to be minimal, we have a contradiction
       have hd_min_r := hd_min r hr_A
       contrapose hd_min_r
-      push_neg
+      push Not
       constructor <;> assumption
 
   -- If d is the gcd, then d | x, d | y, and d | anything that divides both x and y

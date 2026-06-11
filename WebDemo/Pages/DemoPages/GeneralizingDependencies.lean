@@ -70,7 +70,7 @@ by
   have v_deg_geq : 3 ≤ G.degree v := by {rw [← SimpleGraph.card_neighborFinset_eq_degree]; rw [← hw_card]; apply Finset.card_le_card; unfold SimpleGraph.neighborFinset; unfold SimpleGraph.neighborSet; rw [@Set.toFinset_subset_toFinset]; exact neq_imp_adj}; rw [v_deg] at v_deg_geq;
 
   /- But, we know the vertex with degree 1 can be adjacent to at most 1 other vertex. Contradiction.-/
-  exact Nat.not_lt.mpr v_deg_geq one_lt_three
+  exact Nat.not_lt.mpr v_deg_geq (Nat.one_lt_succ_succ _)
 
 ```
 

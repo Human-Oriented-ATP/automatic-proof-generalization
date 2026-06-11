@@ -10,7 +10,7 @@ theorem max_deg_imp_adj_all {V : Type} [Fintype V] {v : V} {G : SimpleGraph V} [
   have hdeg_compl := G.degree_compl v
   rw [hdeg] at hdeg_compl
 
-  simp only [ge_iff_le, le_refl, tsub_eq_zero_of_le] at hdeg_compl
+  simp only [le_refl, tsub_eq_zero_of_le] at hdeg_compl
   rw [← SimpleGraph.card_neighborSet_eq_degree, Fintype.card_eq_zero_iff] at hdeg_compl
   simp only [isEmpty_subtype, SimpleGraph.mem_neighborSet, SimpleGraph.compl_adj,  not_and, not_not] at hdeg_compl
   exact (hdeg_compl w hne.symm).symm

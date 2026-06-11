@@ -14,7 +14,7 @@ def getTheoremStatement (n : Name) : MetaM Expr := do
 /-- Getting theorem proof from context --/
 def getTheoremProof (n : Name) : MetaM Expr := do
   let some thm := (← getEnv).find? n | throwError "No theorem of that name was found.  Are you referring to a `have` statement?  If so, convert it into a `let` so that the autogeneralize tactic can have access to the proof."
-  return thm.value! -- return the theorem statement
+  return thm.value! (allowOpaque := true) -- return the theorem statement
 
 /-- Get a hypothesis by its name -/
 def getHypothesisByName (n : Name) : TacticM LocalDecl := do

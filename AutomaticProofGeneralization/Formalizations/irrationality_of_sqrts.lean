@@ -1,5 +1,5 @@
 import Lean
-import Mathlib.Data.Real.Irrational
+import Mathlib.NumberTheory.Real.Irrational
 open Real
 
 /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -9,7 +9,6 @@ lemma prime_seventeen : Nat.Prime 17 := by decide
 
 theorem irrat_def (n: ℕ) : (¬ ∃ a b : ℕ, Nat.gcd a b = 1 ∧ a*a = (n: ℕ) * b*b ) → Irrational (Real.sqrt n) := by
   contrapose
-  simp
   intros irr
   unfold Irrational at irr
   simp at irr
@@ -36,7 +35,7 @@ theorem irrat_def (n: ℕ) : (¬ ∃ a b : ℕ, Nat.gcd a b = 1 ∧ a*a = (n: �
   rw [Rat.mul_self_num] at x_sq
   rw [Rat.mul_self_den] at x_sq
 
-  have num_abs_eq_num : x.num = Int.natAbs x.num := Int.eq_natAbs_of_zero_le x_num_pos
+  have num_abs_eq_num : x.num = Int.natAbs x.num := Int.eq_natAbs_of_nonneg x_num_pos
   rw [num_abs_eq_num] at x_sq; clear num_abs_eq_num x_num_pos
   rw [mul_assoc n x.den x.den]
   apply_mod_cast x_sq
@@ -98,7 +97,7 @@ theorem irrat_sqrt : Irrational (√17) := by
       assumption
 
 theorem irrat_sum_sqrt : Irrational (sqrt (17:ℕ) + 17) := by
-  apply Irrational.add_nat
+  apply Irrational.add_natCast
   apply irrat_def
   intros h
   obtain ⟨a, b, ⟨copr, h⟩⟩ := h

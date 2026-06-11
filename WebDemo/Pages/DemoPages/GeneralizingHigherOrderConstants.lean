@@ -11,7 +11,7 @@ open Classical
 ```leanInit generalizingHigherOrderConstants
 ```
 
-```lean generalizingHigherOrderConstants show:=false
+```lean generalizingHigherOrderConstants -show
 set_option pp.showLetValues false
 set_option linter.unusedVariables false
 ```

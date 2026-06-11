@@ -40,7 +40,7 @@ theorem complex_sum_convergence
   let z'Bound : ℕ → ℝ := fun n ↦ ‖z' 0‖ / 2 ^ n
   -- the hypothesis `h'` shows that `‖z' i‖ ≤ z'Bound i` for all `i : ℕ`
   -- it suffices to show that `z'Bound` is summable
-  refine cauchySeq_finset_of_norm_bounded z'Bound ?z'BoundSummable h'
+  refine cauchySeq_finset_of_norm_bounded (g := z'Bound) ?z'BoundSummable h'
   -- `z'Bound` is pointwise equal to `fun n => ‖z 0‖ * (1 / 2) ^ n`
   -- the specific form of the second sequence allows
   apply Summable.congr (f := fun n => ‖z' 0‖ * (1 / 2) ^ n)
@@ -62,8 +62,9 @@ info: Successfully generalized ⏎
   complex_sum_convergence ⏎
 to ⏎
   complex_sum_convergence.Gen : ∀ (m : ℝ),
-  (∀ [inst : Preorder ℝ] [inst_1 : ZeroLEOneClass ℝ] [inst_2 : AddLeftMono ℝ], 0 ≤ m) →
-    1 / m < 1 → ∀ (z : ℕ → ℂ), (∃ N, ∀ n ≥ N, ‖z (n + 1)‖ ≤ ‖z n‖ / m) → Summable z ⏎
+  (∀ [inst : Preorder ℝ] [ZeroLEOneClass ℝ] [AddLeftMono ℝ], 0 ≤ m) →
+    (∀ [inst : PartialOrder ℝ] [PosMulReflectLT ℝ] [IsStrictOrderedRing ℝ], 1 / m < 1) →
+      ∀ (z : ℕ → ℂ), (∃ N, ∀ n ≥ N, ‖z (n + 1)‖ ≤ ‖z n‖ / m) → Summable z ⏎
 by abstracting { cauchy := CauSeq.Completion.mk (CauSeq.const abs (Rat.ofInt (Int.ofNat 2))) }.
 -/
 #guard_msgs in

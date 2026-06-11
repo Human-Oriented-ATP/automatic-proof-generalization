@@ -10,10 +10,10 @@ initialize
   registerTraceClass `TypecheckingErrors
   registerTraceClass `Autogeneralize.abstractPattern
 
-local instance {α} : ExceptToEmoji Exception α where
-  toEmoji
-  | .error _ => crossEmoji
-  | .ok _ => ""
+-- local instance {α} : ExceptToEmoji Exception α where
+--   toEmoji
+--   | .error _ => crossEmoji
+--   | .ok _ => ""
 
 section ReplacePatternWithMVars
 
@@ -163,7 +163,7 @@ partial def replacePatternWithMVars (e : Expr) (p : Expr) : ReplaceM Expr := do
       | e                =>
         return e
 
-    withTraceNodeBefore `Autogeneralize.abstractPattern (pure m!"Visiting {e} at depth {(← read).depth}") do
+    withTraceNodeBefore `Autogeneralize.abstractPattern (fun () ↦ do pure m!"Visiting {e} at depth {(← read).depth}") do
       let mctx ← getMCtx
       -- if the expression "e" matches with the pattern being replaced ...
       if !e.isMVar && (← withReducibleAndInstances <| isDefEq e p) then
@@ -225,13 +225,13 @@ def abstractToDiffMVars (e : Expr) (p : Expr) (occs : Occurrences) : MetaM Expr 
   let rec visit (e : Expr) : StateRefT Nat MetaM Expr := do
     let visitChildren : Unit → StateRefT Nat MetaM Expr := fun _ => do
       match e with
-      | .app f a         => return e.updateApp! (← visit f ) (← visit a )
-      | .mdata _ b       => return e.updateMData! (← visit b )
-      | .proj _ _ b      => return e.updateProj! (← visit b )
-      | .letE _ t v b _  => return e.updateLet! (← visit t ) (← visit v ) (← visit b )
-      | .lam _ d b _     => return e.updateLambdaE! (← visit d ) (← visit b )
-      | .forallE _ d b _ => return e.updateForallE! (← visit d ) (← visit b )
-      | e                => return e
+      | .app f a          => return e.updateApp! (← visit f) (← visit a)
+      | .mdata _ b        => return e.updateMData! (← visit b)
+      | .proj _ _ b       => return e.updateProj! (← visit b)
+      | .letE _ t v b nd  => return e.updateLet! (← visit t) (← visit v) (← visit b) nd
+      | .lam _ d b _      => return e.updateLambdaE! (← visit d) (← visit b)
+      | .forallE _ d b _  => return e.updateForallE! (← visit d) (← visit b)
+      | e                 => return e
     if e.hasLooseBVars then
       visitChildren ()
     else if e.toHeadIndex != pHeadIdx || e.headNumArgs != pNumArgs then
